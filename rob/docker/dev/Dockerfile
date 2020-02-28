@@ -1,9 +1,21 @@
-FROM	alejandrocolomar/libalx:dev
-RUN	git clone https://github.com/alejandro-colomar/rob_cam_test.git	&& \
-	make	-C rob_cam_test	-j 2
+FROM	alejandrocolomar/libalx:dev	AS build
+WORKDIR	/tmp
+RUN	git clone --single-branch --branch rob				\
+			https://github.com/alejandro-colomar/rob_cam.git
+RUN	make	-C rob_cam/rob/	-j 2
 
-    2  apt-get update
-    3  apt-get upgrade
-    6  cat > cam.c
-    7  gcc -Wall -Werror -Wextra -O3 -march=native -flto -fuse-linker-plugin -static $(pkg-config --static --cflags libalx-base) cam.c -o cam $(pkg-config --static --libs libalx-base)
-
+FROM	debian:testing
+WORKDIR	/app
+RUN	apt-get update							&& \
+	apt-get upgrade --yes						&& \
+	apt-get install -V \
+			telnet \
+			deborphan \
+			--yes						&& \
+	apt-get autoremove --purge --yes				&& \
+	apt-get purge $(deborphan) --yes				&& \
+	apt-get autoclean						&& \
+	apt-get clean
+COPY	--from=build /tmp/rob_cam/rob/rob .
+RUN	chmod +x ./rob
+CMD	["./rob"]
