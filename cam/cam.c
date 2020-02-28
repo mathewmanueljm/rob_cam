@@ -90,7 +90,7 @@ int	main	(void)
 		goto out0;
 	pid	= getpid();
 
-	for (int i = 0; i < CAM_SESSIONS_MAX; i++) {
+	for (int i = 0; true; i++) {
 		s	= session(pid, i, img, cam);
 		if (s < 0) {
 			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  ERROR: %i\n",
@@ -100,7 +100,7 @@ int	main	(void)
 		if (s > 0)
 			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  WARNING: rob not found\n",
 								pid, i);
-		usleep(10 * DELAY);
+		usleep(DELAY);
 	}
 
 	status	= EXIT_SUCCESS;
@@ -133,9 +133,10 @@ int	session		(pid_t pid, int session,
 	if (proc_cv(&blue11, img, cam))
 		goto out;
 	status--;
-	if (sbprintf(buf, &len, "cam#%"PRIpid"; msg#%i;  img[B][1][1] = %"PRIu8"\n",
+	if (sbprintf(buf, &len, "cam#%"PRIpid"; msg#%i;  img[B][1][1] = %"PRIu8"",
 							pid, session, blue11))
 		goto out;
+	printf("%s\n", buf);
 	status--;
 	n	= send(rob, buf, len, 0);
 	if (n < 0)
