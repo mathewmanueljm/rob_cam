@@ -1,4 +1,4 @@
-FROM	debian:stable	AS build
+FROM	debian:testing	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
@@ -25,7 +25,7 @@ RUN	git clone --single-branch --branch cam \
 		https://github.com/alejandro-colomar/rob_cam.git	&& \
 	make	-C rob_cam/cam/	-j 2
 
-FROM	debian:stable
+FROM	debian:testing
 WORKDIR	/app
 RUN	apt-get update							&& \
 	apt-get upgrade --yes						&& \
@@ -35,8 +35,8 @@ RUN	apt-get update							&& \
 			libbsd0 \
 			libgsl23 \
 			libgslcblas0 \
-			libopencv-core3.2 \
-			libopencv-videoio3.2 \
+			libopencv-core4.2 \
+			libopencv-videoio4.2 \
 			deborphan \
 			--yes						&& \
 	apt-get autoremove --purge --yes				&& \
