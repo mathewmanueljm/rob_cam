@@ -36,7 +36,7 @@ services:
             - ROB_ADDR=rob
             - ROB_PORT=13100
 
-    tst3:
+    robot:
         image: secobau/telnetd:alpine
         deploy:
             replicas: 2
