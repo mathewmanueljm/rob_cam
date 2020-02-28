@@ -15,7 +15,7 @@
 #include "libalx/extra/telnet-tcp/client/client.h"
 
 
-#define ROBOT_ADDR	"tst3"
+#define ROBOT_ADDR	"robot"
 #define ROBOT_PORT	"23"
 #define ROBOT_USER	"user"
 #define ROBOT_PASSWD	""
