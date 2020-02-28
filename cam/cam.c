@@ -32,10 +32,15 @@
 /******************************************************************************
  ******* define ***************************************************************
  ******************************************************************************/
-#define ROB_ADDR	"rob"
-#define ROB_PORT	"13100"
+#define ROB_ADDR		"rob"
+#define ROB_PORT		"13100"
 
-#define CAM_IDX		(0)
+#define CAM_IDX			(0)
+
+#define CAM_SESSIONS_MAX	(1000)
+
+#define DELAY			(100 * 1000)
+
 
 
 /******************************************************************************
@@ -51,6 +56,9 @@
 /******************************************************************************
  ******* static functions (prototypes) ****************************************
  ******************************************************************************/
+static
+int	session		(pid_t pid, int session,
+			 img_s *restrict img, cam_s *restrict cam);
 static
 int	init_rob	(int *restrict rob,
 			 char *restrict rob_addr, char *restrict rob_port);
@@ -70,47 +78,34 @@ int	proc_cv		(uint8_t *restrict blue11,
  ******************************************************************************/
 int	main	(void)
 {
-	int		rob;
 	img_s		*img;
 	cam_s		*cam;
 	pid_t		pid;
-	uint8_t		blue11;
-	char		buf[BUFSIZ];
-	ptrdiff_t	len;
-	ssize_t		n;
 	int		status;
+	int		s;
 
 	status	= EXIT_FAILURE;
 
-	if (init_rob(&rob, ROB_ADDR, ROB_PORT))
-		goto out0;
 	if (init_cv(&img, &cam, CAM_IDX))
-		goto out1;
-
+		goto out0;
 	pid	= getpid();
-	if (sbprintf(buf, &len, "Hi, this is cam #%"PRIpid"!", pid))
-		goto out;
-	n	= send(rob, buf, len, 0);
-	if (n < 0)
-		goto out;
 
-	for (int i = 0; true; i++) {
-		if (proc_cv(&blue11, img, cam))
+	for (int i = 0; i < CAM_SESSIONS_MAX; i++) {
+		s	= session(pid, i, img, cam);
+		if (s < 0) {
+			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  ERROR: %i\n",
+								pid, i, s);
 			goto out;
-		if (sbprintf(buf, &len, "cam#%"PRIpid"[B][1][1] = %"PRIu8"; (msg #%i)",
-								pid, blue11, i))
-			goto out;
-		n	= send(rob, buf, len, 0);
-		if (n < 0)
-			goto out;
+		}
+		if (s > 0)
+			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  WARNING: rob not found\n",
+								pid, i);
+		usleep(10 * DELAY);
 	}
 
 	status	= EXIT_SUCCESS;
 out:
 	deinit_cv(img, cam);
-out1:
-	if (deinit_rob(rob))
-		status	= EXIT_FAILURE;
 out0:
 	perrorx(NULL);
 
@@ -121,6 +116,37 @@ out0:
 /******************************************************************************
  ******* static functions (definitions) ***************************************
  ******************************************************************************/
+static
+int	session		(pid_t pid, int session,
+			 img_s *restrict img, cam_s *restrict cam)
+{
+	int		rob;
+	uint8_t		blue11;
+	char		buf[BUFSIZ];
+	ptrdiff_t	len;
+	ssize_t		n;
+	int		status;
+
+	if (init_rob(&rob, ROB_ADDR, ROB_PORT))
+		return	1;
+	status	= -1;
+	if (proc_cv(&blue11, img, cam))
+		goto out;
+	status--;
+	if (sbprintf(buf, &len, "cam#%"PRIpid"; msg#%i;  img[B][1][1] = %"PRIu8"\n",
+							pid, session, blue11))
+		goto out;
+	status--;
+	n	= send(rob, buf, len, 0);
+	if (n < 0)
+		goto out;
+	status	= 0;
+out:
+	if (deinit_rob(rob))
+		return	-1;
+	return	status;
+}
+
 static
 int	init_rob	(int *restrict rob,
 			 char *restrict rob_addr, char *restrict rob_port)
