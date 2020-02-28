@@ -23,9 +23,7 @@
 #define ROB_PORT	"13100"
 #define CLIENTS_MAX	(50)
 
-#define LOG_TELNET_OUT	"log.telnet.out"
-#define LOG_TELNET_ERR	"log.telnet.err"
-
+#define DELAY_LOGIN	(1000 * 1000)
 #define DELAY_US	(10 * 1000)
 
 
@@ -43,11 +41,9 @@ int	main		(void)
 
 	status	= EXIT_FAILURE;
 
-	if (telnet_open_client(&telnet, ROBOT_ADDR, ROBOT_PORT, "w",
-						ALX_TELNET_TCP_LOG_OVR,
-						LOG_TELNET_OUT, LOG_TELNET_ERR))
+	if (telnet_open_client(&telnet, ROBOT_ADDR, ROBOT_PORT, "w"))
 		goto out0;
-	if (telnet_login(telnet, ROBOT_USER, ROBOT_PASSWD))
+	if (telnet_login(telnet, ROBOT_USER, ROBOT_PASSWD, DELAY_LOGIN))
 		goto out1;
 
 	tcp	= tcp_server_open(ROB_PORT, CLIENTS_MAX);
