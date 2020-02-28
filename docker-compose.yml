@@ -37,6 +37,6 @@ services:
             - ROB_PORT=13100
 
     tst3:
-        image: secobau/telnet:alpine
+        image: secobau/telnetd:alpine
         deploy:
             replicas: 2
