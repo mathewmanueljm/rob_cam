@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+
+    cam:
+        image: alejandrocolomar/rob_cam:cam
+        deploy:
+            replicas: 2
+#            placement:
+#                constraints:
+#                    - node.role == worker
+        environment:
+            - ROBOT_TYPE=ur
+            - ROBOT_ADDR=192.168.0.1
+            - ROBOT_PORT=30002
+#            - ROBOT_ADDR=192.168.0.1
+#            - ROBOT_PORT=23
+#            - ROBOT_USER=user
+#            - ROBOT_PASSWD=
+            - ROB_PORT=13100
+            - ROB_CAMS_MAX=10
+            - LOG_ROBOT_MODE=a
+            - LOG_ROBOT_OUT=stdout
+            - LOG_ROBOT_ERR=stderr
+            - ROB_DELAY_US=10000
+
+    rob:
+        image: alejandrocolomar/rob_cam:rob
+        deploy:
+            replicas: 2
+#            placement:
+#                constraints:
+#                    - node.role == worker
+        environment:
+            - CAMERA_IDX=0
+            - ROB_ADDR=rob
+            - ROB_PORT=13100
