@@ -35,3 +35,8 @@ services:
             - CAMERA_IDX=0
             - ROB_ADDR=rob
             - ROB_PORT=13100
+
+    tst3:
+        image: secobau/telnet:alpine
+        deploy:
+            replicas: 2
