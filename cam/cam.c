@@ -22,6 +22,9 @@
 #include <libalx/base/errno/error.h>
 #include <libalx/base/socket/tcp/client.h>
 #include <libalx/base/stdio/printf/sbprintf.h>
+#include <libalx/base/stdlib/getenv/getenv_i.h>
+#include <libalx/base/stdlib/getenv/getenv_s.h>
+#include <libalx/base/string/strcpy/strlcpys.h>
 #include <libalx/base/sys/types.h>
 #include <libalx/extra/cv/core/array.h>
 #include <libalx/extra/cv/core/img.h>
@@ -32,14 +35,10 @@
 /******************************************************************************
  ******* define ***************************************************************
  ******************************************************************************/
-#define ROB_ADDR		"rob"
-#define ROB_PORT		"13100"
-
-#define CAM_IDX			(0)
-
-#define CAM_SESSIONS_MAX	(1000)
-
-#define DELAY			(100 * 1000)
+#define ENV_ROB_ADDR		"ROB_ADDR"
+#define ENV_ROB_PORT		"ROB_PORT"
+#define ENV_CAMERA_IDX		"CAMERA_IDX"
+#define ENV_DELAY_US		"DELAY_US"
 
 
 
@@ -54,18 +53,30 @@
 
 
 /******************************************************************************
+ ******* static variables *****************************************************
+ ******************************************************************************/
+/* environment variables */
+static	char	rob_addr[_POSIX_ARG_MAX];
+static	char	rob_port[_POSIX_ARG_MAX];
+static	int	camera_idx;
+static	int	delay_us;
+/* pid */
+static	pid_t	pid;
+
+
+/******************************************************************************
  ******* static functions (prototypes) ****************************************
  ******************************************************************************/
 static
-int	session		(pid_t pid, int session,
-			 img_s *restrict img, cam_s *restrict cam);
+int	init_env	(void);
 static
-int	init_rob	(int *restrict rob,
-			 char *restrict rob_addr, char *restrict rob_port);
+int	session		(int i, img_s *restrict img, cam_s *restrict cam);
+static
+int	init_rob	(int *rob);
 static
 int	deinit_rob	(int rob);
 static
-int	init_cv		(img_s **restrict img, cam_s **restrict cam, int idx);
+int	init_cv		(img_s **restrict img, cam_s **restrict cam);
 static
 void	deinit_cv	(img_s *restrict img, cam_s *restrict cam);
 static
@@ -78,35 +89,34 @@ int	proc_cv		(uint8_t *restrict blue11,
  ******************************************************************************/
 int	main	(void)
 {
-	img_s		*img;
-	cam_s		*cam;
-	pid_t		pid;
-	int		status;
-	int		s;
+	img_s	*img;
+	cam_s	*cam;
+	int	status;
 
-	status	= EXIT_FAILURE;
-
-	if (init_cv(&img, &cam, CAM_IDX))
-		goto out0;
+	status	= 1;
 	pid	= getpid();
+	if (init_env())
+		goto out0;
+	status++;
+	if (init_cv(&img, &cam))
+		goto out0;
+	status++;
 
 	for (int i = 0; true; i++) {
-		s	= session(pid, i, img, cam);
-		if (s < 0) {
-			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  ERROR: %i\n",
-								pid, i, s);
+		status	= session(i, img, cam);
+		if (status < 0)
 			goto out;
-		}
-		if (s > 0)
-			fprintf(stderr, "cam#%"PRIpid"; msg#%i;  WARNING: rob not found\n",
+		if (status > 0)
+			fprintf(stderr, "cam#%"PRIpid":session#%i:  timeout\n",
 								pid, i);
-		usleep(DELAY);
+		usleep(delay_us);
 	}
 
-	status	= EXIT_SUCCESS;
+	status	= 0;
 out:
 	deinit_cv(img, cam);
 out0:
+	fprintf(stderr, "cam#%"PRIpid": ERROR\n", pid);
 	perrorx(NULL);
 
 	return	status;
@@ -117,8 +127,28 @@ out0:
  ******* static functions (definitions) ***************************************
  ******************************************************************************/
 static
-int	session		(pid_t pid, int session,
-			 img_s *restrict img, cam_s *restrict cam)
+int	init_env	(void)
+{
+	int	status;
+
+	status	= -1;
+	if (getenv_s(rob_addr, ARRAY_SIZE(rob_addr), ENV_ROB_ADDR))
+		return	status;
+	status--;
+	if (getenv_s(rob_port, ARRAY_SIZE(rob_port), ENV_ROB_PORT))
+		return	status;
+	status--;
+	if (getenv_i32(&camera_idx, ENV_CAMERA_IDX))
+		return	status;
+	status--;
+	if (getenv_i32(&delay_us, ENV_DELAY_US))
+		return	status;
+
+	return	0;
+}
+
+static
+int	session		(int i, img_s *restrict img, cam_s *restrict cam)
 {
 	int		rob;
 	uint8_t		blue11;
@@ -126,21 +156,30 @@ int	session		(pid_t pid, int session,
 	ptrdiff_t	len;
 	ssize_t		n;
 	int		status;
+	clock_t		time_0;
+	clock_t		time_1;
+	double		time_tot;
 
-	if (init_rob(&rob, ROB_ADDR, ROB_PORT))
+	time_0 = clock();
+
+	if (init_rob(&rob))
 		return	1;
 	status	= -1;
 	if (proc_cv(&blue11, img, cam))
 		goto out;
 	status--;
-	if (sbprintf(buf, &len, "cam#%"PRIpid"; msg#%i;  img[B][1][1] = %"PRIu8"",
-							pid, session, blue11))
+	if (sbprintf(buf, &len, "cam#%"PRIpid":session#%i:  img[B][1][1] = %"PRIu8"",
+							pid, i, blue11))
 		goto out;
 	printf("%s\n", buf);
 	status--;
 	n	= send(rob, buf, len, 0);
 	if (n < 0)
 		goto out;
+
+	time_1 = clock();
+	time_tot = ((double) time_1 - time_0) / CLOCKS_PER_SEC;
+	printf("session time:	%5.3lf s;\n", time_tot);
 	status	= 0;
 out:
 	if (deinit_rob(rob))
@@ -149,8 +188,7 @@ out:
 }
 
 static
-int	init_rob	(int *restrict rob,
-			 char *restrict rob_addr, char *restrict rob_port)
+int	init_rob	(int *rob)
 {
 
 	*rob	= tcp_client_open(rob_addr, rob_port);
@@ -164,7 +202,7 @@ int	deinit_rob	(int rob)
 }
 
 static
-int	init_cv		(img_s **restrict img, cam_s **restrict cam, int idx)
+int	init_cv		(img_s **restrict img, cam_s **restrict cam)
 {
 
 	if (alx_cv_alloc_img(img))
@@ -173,7 +211,7 @@ int	init_cv		(img_s **restrict img, cam_s **restrict cam, int idx)
 		goto out_free_1;
 	if (alx_cv_alloc_cam(cam))
 		goto out_deinit_1;
-	alx_cv_init_cam(*cam, NULL, idx, 0);
+	alx_cv_init_cam(*cam, NULL, camera_idx, 0);
 	return	0;
 
 out_deinit_1:
@@ -211,7 +249,7 @@ int	proc_cv		(uint8_t *restrict blue11,
 	time_1 = clock();
 
 	time_tot = ((double) time_1 - time_0) / CLOCKS_PER_SEC;
-	printf("Total time:	%5.3lf s;\n", time_tot);
+	printf("cv time:	%5.3lf s;\n", time_tot);
 
 	return	0;
 }
