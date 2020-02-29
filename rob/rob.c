@@ -130,7 +130,7 @@ out1:
 	if (pclose(telnet))
 		status	+= 64;
 out0:
-	fprintf(stderr, "rob#%"PRIpid": ERROR\n", pid);
+	fprintf(stderr, "rob#%"PRIpid": ERROR: %i\n", pid, status);
 	perrorx(NULL);
 
 	return	status;
