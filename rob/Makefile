@@ -1,5 +1,5 @@
 
-CFLAGS_W	= -Wall -Wextra -Werror
+CFLAGS_W	= -Wall -Wextra -Werror -Wno-implicit-fallthrough
 CFLAGS_O	= -O3 -march=native -flto -fuse-linker-plugin -static
 CFLAGS		= $(CFLAGS_W) $(CFLAGS_O)
 
