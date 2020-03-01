@@ -93,8 +93,8 @@ int	main	(void)
 	cam_s	*cam;
 	int	status;
 
-	status	= 1;
 	pid	= getpid();
+	status	= 1;
 	if (init_env())
 		goto out0;
 	status++;
@@ -116,7 +116,7 @@ int	main	(void)
 out:
 	deinit_cv(img, cam);
 out0:
-	fprintf(stderr, "cam#%"PRIpid": ERROR\n", pid);
+	fprintf(stderr, "cam#%"PRIpid": ERROR: %i\n", pid, status);
 	perrorx(NULL);
 
 	return	status;
