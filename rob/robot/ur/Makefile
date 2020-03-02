@@ -4,15 +4,13 @@ CFLAGS_O	= -O3 -march=native -flto -fuse-linker-plugin -static
 CFLAGS		= $(CFLAGS_W) $(CFLAGS_O)
 
 .PHONY: all
-all: rob
+all: ur-sim
 
-rob: rob.c
+ur-sim: ur-sim.c
 	gcc $(CFLAGS) 							\
 			`pkg-config --static --cflags libalx-base`	\
-			`pkg-config --static --cflags libalx-telnet-tcp`\
 			`pkg-config --static --cflags libalx-robot`	\
 			$< -o $@					\
 			`pkg-config --static --libs libalx-robot`	\
-			`pkg-config --static --libs libalx-telnet-tcp`	\
 			`pkg-config --static --libs libalx-base`
 
