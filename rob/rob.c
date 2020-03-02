@@ -19,6 +19,7 @@
 #include <linux/membarrier.h>
 
 #define ALX_NO_PREFIX
+#include <libalx/alx/robot/ur/ur.h>
 #include <libalx/base/compiler/size.h>
 #include <libalx/base/compiler/unused.h>
 #include <libalx/base/errno/error.h>
@@ -39,6 +40,7 @@
 #define ENV_ROBOT_PORT		"ROBOT_PORT"
 #define ENV_ROBOT_USER		"ROBOT_USER"
 #define ENV_ROBOT_PASSWD	"ROBOT_PASSWD"
+#define ENV_ROBOT_STATUS_FNAME	"ROBOT_STATUS_FNAME"
 #define ENV_ROB_PORT		"ROB_PORT"
 #define ENV_ROB_CAMS_MAX	"ROB_CAMS_MAX"
 #define ENV_DELAY_LOGIN		"DELAY_LOGIN"
@@ -66,6 +68,7 @@ struct	Robot_Step_Info {
 };
 
 struct	Robot_Status {
+	FILE	*fp;
 	int	step;
 	struct Robot_Step_Info	info[ROBOT_STEPS];
 };
@@ -79,6 +82,7 @@ static	char			robot_addr[_POSIX_ARG_MAX];
 static	char			robot_port[_POSIX_ARG_MAX];
 static	char			robot_user[_POSIX_ARG_MAX];
 static	char			robot_passwd[_POSIX_ARG_MAX];
+static	char			robot_status_fname[FILENAME_MAX];
 static	char			rob_port[_POSIX_ARG_MAX];
 static	int			rob_cams_max;
 static	int			delay_login;
@@ -90,7 +94,11 @@ static	int			mb_cmd;
 static	sig_atomic_t		sigterm;
 /* robot */
 static	struct Robot_Status	robot_status;
+#if 0
 static	FILE			*robot;		/* telnet */
+#else
+struct Alx_UR			*robot;
+#endif
 /* cam */
 static	int			tcp;
 
@@ -99,39 +107,50 @@ static	int			tcp;
  ******* static functions (prototypes) ****************************************
  ******************************************************************************/
 static
-int	rob_init	(void);
+int	rob_init		(void);
 static
-int	rob_deinit	(void);
-static
-int	env_init	(void);
-static
-int	robot_init	(void);
-static
-int	robot_deinit	(void);
-static
-int	tcp_init	(void);
-static
-int	tcp_deinit	(void);
+int	rob_deinit		(void);
 
 static
-void	cam_session	(int cam);
+int	env_init		(void);
 static
-int	robot_steps	(char *cam_data);
+int	robot_init		(void);
 static
-int	robot_step_info	(char *str);
+int	robot_deinit		(void);
+static
+int	tcp_init		(void);
+static
+int	tcp_deinit		(void);
 
 static
-int	mb_init		(void);
+int	robot_status_init	(void);
 static
-int	sigterm_init	(void);
+int	robot_status_deinit	(void);
 static
-void	sigterm_handler	(int sig);
+int	robot_status_update	(int step);
+static
+void	robot_status_reset	(void);
+
+static
+void	cam_session		(int cam);
+
+static
+int	robot_steps		(char *cam_data);
+static
+int	robot_step_info		(char *str);
+
+static
+int	mb_init			(void);
+static
+int	sigterm_init		(void);
+static
+void	sigterm_handler		(int sig);
 
 
 /******************************************************************************
  ******* main *****************************************************************
  ******************************************************************************/
-int	main		(void)
+int	main	(void)
 {
 	int			cam;
 	struct sockaddr_storage	cam_addr = {0};
@@ -141,10 +160,6 @@ int	main		(void)
 	status	= 1;
 	if (rob_init())
 		goto out0;
-
-	status++;
-	if (telnet_send(robot, "date"))
-		goto out;
 
 	status++;
 	cam_addr_len	= sizeof(cam_addr);
@@ -161,8 +176,7 @@ int	main		(void)
 		asm volatile ("" : : : "memory");
 	} while (!sigterm);
 
-	status	= EXIT_SUCCESS;
-out:
+	status	= 0;
 	if (rob_deinit())
 		status	+= 32;
 out0:
@@ -177,7 +191,7 @@ out0:
  ******* static functions (definitions) ***************************************
  ******************************************************************************/
 static
-int	rob_init	(void)
+int	rob_init		(void)
 {
 	int	status;
 
@@ -203,21 +217,24 @@ err0:
 }
 
 static
-int	rob_deinit	(void)
+int	rob_deinit		(void)
 {
 	int	status;
 
 	status	= 0;
 	if (tcp_deinit())
-		status--;
+		status -= 1;
 	if (robot_deinit())
-		status--;
+		status -= 2;
+	if (robot_status_deinit())
+		status -= 4;
 
 	return	status;
 }
 
+
 static
-int	env_init	(void)
+int	env_init		(void)
 {
 	int	status;
 
@@ -232,6 +249,10 @@ int	env_init	(void)
 		goto err;
 	status--;
 	if (getenv_s(robot_passwd, ARRAY_SIZE(robot_passwd), ENV_ROBOT_PASSWD))
+		goto err;
+	status--;
+	if (getenv_s(robot_status_fname, ARRAY_SIZE(robot_status_fname),
+							ENV_ROBOT_STATUS_FNAME))
 		goto err;
 	status--;
 	if (getenv_s(rob_port, ARRAY_SIZE(rob_port), ENV_ROB_PORT))
@@ -253,15 +274,23 @@ err:
 }
 
 static
-int	robot_init	(void)
+int	robot_init		(void)
 {
 	int	status;
 
 	status	= -1;
+#if 0
 	if (telnet_open_client(&robot, robot_addr, robot_port, "w"))
 		goto err0;
 	status--;
 	if (telnet_login(robot, robot_user, robot_passwd, delay_login))
+		goto err;
+#else
+	if (ur_init(&robot, robot_addr, robot_port, delay_login))
+		goto err0;
+#endif
+	status--;
+	if (robot_status_init())
 		goto err;
 
 	return	0;
@@ -273,13 +302,18 @@ err0:
 }
 
 static
-int	robot_deinit	(void)
+int	robot_deinit		(void)
 {
+
+#if 0
 	return	pclose(robot);
+#else
+	return	ur_deinit(robot);
+#endif
 }
 
 static
-int	tcp_init	(void)
+int	tcp_init		(void)
 {
 
 	tcp	= tcp_server_open(rob_port, rob_cams_max);
@@ -287,13 +321,78 @@ int	tcp_init	(void)
 }
 
 static
-int	tcp_deinit	(void)
+int	tcp_deinit		(void)
 {
 	return	close(tcp);
 }
 
+
 static
-void	cam_session	(int cam)
+int	robot_status_init	(void)
+{
+	FILE	*fp;
+
+	fp	= fopen(robot_status_fname, "w+");
+	if (!fp)
+		return	-1;
+
+	if (fread(&robot_status, sizeof(robot_status), 1, robot_status.fp) != 1)
+		goto eread;
+	robot_status.fp	= fp;
+
+	return	0;
+eread:
+	memset(&robot_status, 0, sizeof(robot_status));
+	return	-2;
+}
+
+static
+int	robot_status_deinit	(void)
+{
+
+	if (robot_status.fp)
+		return	fclose(robot_status.fp);
+	return	0;
+}
+
+static
+int	robot_status_update	(int step)
+{
+
+	if (!step) {
+		robot_status_reset();
+		return	0;
+	}
+
+	robot_status.step	= step;
+
+	if (!robot_status.fp) {
+		robot_status.fp	= fopen(robot_status_fname, "w");
+		if (!robot_status.fp)
+			return	-1;
+	} else {
+		rewind(robot_status.fp);
+	}
+
+	if (fwrite(&robot_status, sizeof(robot_status), 1,robot_status.fp) != 1)
+		return	-2;
+
+	return	0;
+}
+
+static
+void	robot_status_reset	(void)
+{
+
+	if (robot_status.fp)
+		fclose(robot_status.fp);
+	remove(robot_status_fname);
+	memset(&robot_status, 0, sizeof(robot_status));
+}
+
+
+static
+void	cam_session		(int cam)
 {
 	static	int i = 0;
 	char	cam_data[BUFSIZ];
@@ -315,18 +414,17 @@ void	cam_session	(int cam)
 
 
 static
-int	robot_steps	(char *cam_data)
+int	robot_steps		(char *cam_data)
 {
 
 	switch (robot_status.step) {
 	case ROBOT_STEP_IDLE:
-		robot_status.step	= ROBOT_STEP_INFO;
+		robot_status_update(ROBOT_STEP_INFO);
 	case ROBOT_STEP_INFO:
 		if (robot_step_info(cam_data))
 			goto err;
-		robot_status.step	= ROBOT_STEP_IDLE;
+		robot_status_update(ROBOT_STEP_IDLE);
 	}
-	memset(&robot_status, 0, sizeof(robot_status));
 
 	return	0;
 err:
@@ -335,14 +433,20 @@ err:
 	return	robot_status.step;
 }
 
-int	robot_step_info	(char *str)
+static
+int	robot_step_info		(char *str)
 {
+
+#if 0
 	return	telnet_send(robot, str);
+#else
+	return	ur_puts(robot, str, delay_us, stdout);
+#endif
 }
 
 
 static
-int	mb_init		(void)
+int	mb_init			(void)
 {
 	static bool	done = false;
 	int		cmd;
@@ -371,7 +475,7 @@ int	mb_init		(void)
 }
 
 static
-int	sigterm_init	(void)
+int	sigterm_init		(void)
 {
 	struct sigaction	sa = {0};
 
@@ -389,7 +493,7 @@ int	sigterm_init	(void)
 }
 
 static
-void	sigterm_handler	(int sig)
+void	sigterm_handler		(int sig)
 {
 
 	ALX_UNUSED(sig);
