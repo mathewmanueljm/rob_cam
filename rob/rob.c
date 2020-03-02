@@ -24,6 +24,7 @@
 #include <libalx/base/compiler/unused.h>
 #include <libalx/base/errno/error.h>
 #include <libalx/base/linux/membarrier.h>
+#include <libalx/base/signal/sigterm.h>
 #include <libalx/base/socket/tcp/server.h>
 #include <libalx/base/stdio/printf/sbprintf.h>
 #include <libalx/base/stdlib/getenv/getenv_i.h>
@@ -89,8 +90,6 @@ static	int			delay_login;
 static	int			delay_us;
 /* pid */
 static	pid_t			pid;
-/* sigterm */
-static	sig_atomic_t		sigterm;
 /* robot */
 static	struct Robot_Status	robot_status;
 #if 0
@@ -137,11 +136,6 @@ static
 int	robot_steps		(char *cam_data);
 static
 int	robot_step_info		(char *str);
-
-static
-int	sigterm_init		(void);
-static
-void	sigterm_handler		(int sig);
 
 
 /******************************************************************************
@@ -439,38 +433,6 @@ int	robot_step_info		(char *str)
 #else
 	return	ur_puts(robot, str, delay_us, stdout);
 #endif
-}
-
-
-static
-int	sigterm_init		(void)
-{
-	struct sigaction	sa = {0};
-	int			status;
-
-	status	= 1;
-	sigterm	= false;
-	asm volatile ("" : : : "memory");
-
-	status++;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler	= &sigterm_handler;
-	if (sigaction(SIGTERM, &sa, NULL))
-		goto err;
-	return	0;
-err:
-	fprintf(stderr, "rob#%"PRIpid": ERROR: sigterm_init(): %i\n", pid, status);
-	return	status;
-}
-
-static
-void	sigterm_handler		(int sig)
-{
-
-	ALX_UNUSED(sig);
-
-	sigterm	= true;
-	asm volatile ("" : : : "memory");
 }
 
 
