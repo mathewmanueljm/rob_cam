@@ -334,7 +334,7 @@ int	robot_status_init	(void)
 
 	fp	= fopen(robot_status_fname, "r");
 	if (!fp)
-		return	-1;
+		return	0;
 
 	if (fread(&robot_status, sizeof(robot_status), 1, robot_status.fp) != 1)
 		goto eread;
