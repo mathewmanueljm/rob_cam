@@ -37,3 +37,6 @@ RUN	apt-get update							&& \
 COPY	--from=build /tmp/rob_cam/rob/rob ./
 RUN	chmod +x ./rob
 CMD	["./rob"]
+
+# docker container run --tty --interactive --rm --name rob --network telnet-network --env ROBOT_TYPE=ur --env ROBOT_ADDR=robot --env ROBOT_PORT=30002 --env ROBOT_USER= --env ROBOT_PASSWD= --env ROBOT_STATUS_FNAME=status.log --env ROB_PORT=13100 --env ROB_CAMS_MAX=10 --env DELAY_LOGIN=1000000 --env DELAY_US=100000 alejandrocolomar/rob_cam:rob  
+
