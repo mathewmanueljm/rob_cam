@@ -90,7 +90,6 @@ static	int			delay_us;
 /* pid */
 static	pid_t			pid;
 /* sigterm */
-static	int			mb_cmd;
 static	sig_atomic_t		sigterm;
 /* robot */
 static	struct Robot_Status	robot_status;
@@ -140,8 +139,6 @@ static
 int	robot_step_info		(char *str);
 
 static
-int	mb_init			(void);
-static
 int	sigterm_init		(void);
 static
 void	sigterm_handler		(int sig);
@@ -159,7 +156,7 @@ int	main	(void)
 
 	status	= 1;
 	if (rob_init())
-		goto out0;
+		goto err;
 
 	status++;
 	cam_addr_len	= sizeof(cam_addr);
@@ -179,7 +176,7 @@ int	main	(void)
 	status	= 0;
 	if (rob_deinit())
 		status	+= 32;
-out0:
+err:
 	fprintf(stderr, "rob#%"PRIpid": ERROR: main(): %i\n", pid, status);
 	perrorx(NULL);
 
@@ -446,57 +443,14 @@ int	robot_step_info		(char *str)
 
 
 static
-int	mb_init			(void)
-{
-	static bool	done = false;
-	int		cmd;
-	int		status;
-
-	if (done)
-		return	0;
-
-	status	= 1;
-	cmd	= membarrier(MEMBARRIER_CMD_QUERY, 0);
-	if (cmd < 0)
-		goto err;
-
-	if (cmd & MEMBARRIER_CMD_PRIVATE_EXPEDITED) {
-		status	= 2;
-		mb_cmd	= MEMBARRIER_CMD_PRIVATE_EXPEDITED;
-		if (membarrier(MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0))
-			goto err;
-	} else if (cmd & MEMBARRIER_CMD_GLOBAL_EXPEDITED) {
-		status	= 3;
-		mb_cmd	= MEMBARRIER_CMD_GLOBAL_EXPEDITED;
-		if (membarrier(MEMBARRIER_CMD_REGISTER_GLOBAL_EXPEDITED, 0))
-			goto err;
-	} else {
-		mb_cmd	= MEMBARRIER_CMD_GLOBAL;
-	}
-
-	status	= 4;
-	if (membarrier(mb_cmd, 0))
-		goto err;
-	done	= true;
-	return	0;
-err:
-	fprintf(stderr, "rob#%"PRIpid": ERROR: mb_init(): %i\n", pid, status);
-	return	status;
-
-}
-
-static
 int	sigterm_init		(void)
 {
 	struct sigaction	sa = {0};
 	int			status;
 
 	status	= 1;
-	if (mb_init())
-		goto err;
-
 	sigterm	= false;
-	membarrier(mb_cmd, 0);
+	asm volatile ("" : : : "memory");
 
 	status++;
 	sigemptyset(&sa.sa_mask);
@@ -516,7 +470,7 @@ void	sigterm_handler		(int sig)
 	ALX_UNUSED(sig);
 
 	sigterm	= true;
-	membarrier(mb_cmd, 0);
+	asm volatile ("" : : : "memory");
 }
 
 
