@@ -15,8 +15,10 @@ RUN	apt-get update							&& \
 	apt-get clean
 WORKDIR	/tmp
 RUN	git clone https://github.com/alejandro-colomar/libalx.git	&& \
-	make	base telnet-tcp			-C libalx	-j 8	&& \
-	make	install-base install-telnet-tcp	-C libalx		&& \
+	make	base telnet-tcp robot		-C libalx	-j 8	&& \
+	make	install-base			-C libalx		&& \
+	make	install-telnet-tcp		-C libalx		&& \
+	make	install-robot			-C libalx		&& \
 	rm -rf	libalx
 RUN	git clone --single-branch --branch rob \
 		https://github.com/alejandro-colomar/rob_cam.git	&& \
