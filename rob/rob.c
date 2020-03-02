@@ -450,46 +450,63 @@ int	mb_init			(void)
 {
 	static bool	done = false;
 	int		cmd;
+	int		status;
 
 	if (done)
 		return	0;
 
+	status	= 1;
 	cmd	= membarrier(MEMBARRIER_CMD_QUERY, 0);
 	if (cmd < 0)
-		return	-1;
+		goto err;
 
 	if (cmd & MEMBARRIER_CMD_PRIVATE_EXPEDITED) {
+		status	= 2;
 		mb_cmd	= MEMBARRIER_CMD_PRIVATE_EXPEDITED;
 		if (membarrier(MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0))
-			return	-2;
+			goto err;
 	} else if (cmd & MEMBARRIER_CMD_GLOBAL_EXPEDITED) {
+		status	= 3;
 		mb_cmd	= MEMBARRIER_CMD_GLOBAL_EXPEDITED;
 		if (membarrier(MEMBARRIER_CMD_REGISTER_GLOBAL_EXPEDITED, 0))
-			return	-3;
+			goto err;
 	} else {
 		mb_cmd	= MEMBARRIER_CMD_GLOBAL;
 	}
 
-	done	= !membarrier(mb_cmd, 0);
-	return	!done;
+	status	= 4;
+	if (membarrier(mb_cmd, 0))
+		goto err;
+	done	= true;
+	return	0;
+err:
+	fprintf(stderr, "rob#%"PRIpid": ERROR: mb_init(): %i\n", pid, status);
+	return	status;
+
 }
 
 static
 int	sigterm_init		(void)
 {
 	struct sigaction	sa = {0};
+	int			status;
 
+	status	= 1;
 	if (mb_init())
-		return	-1;
+		goto err;
 
 	sigterm	= false;
 	membarrier(mb_cmd, 0);
 
+	status++;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler	= &sigterm_handler;
 	if (sigaction(SIGTERM, &sa, NULL))
-		return	-3;
+		goto err;
 	return	0;
+err:
+	fprintf(stderr, "rob#%"PRIpid": ERROR: sigterm_init(): %i\n", pid, status);
+	return	status;
 }
 
 static
