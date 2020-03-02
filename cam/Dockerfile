@@ -49,3 +49,5 @@ COPY	--from=build /tmp/rob_cam/cam/cam ./
 RUN	chmod +x ./cam
 CMD	["./cam"]
 
+# docker container run --tty --interactive --rm --name cam --network XXX --env --env ROB_ADDR=rob --env ROB_PORT=13100 --env CAMERA_IDX=0 --env DELAY_US=10000 alejandrocolomar/rob_cam:cam  
+
