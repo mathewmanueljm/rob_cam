@@ -332,7 +332,7 @@ int	robot_status_init	(void)
 {
 	FILE	*fp;
 
-	fp	= fopen(robot_status_fname, "w+");
+	fp	= fopen(robot_status_fname, "r");
 	if (!fp)
 		return	-1;
 
