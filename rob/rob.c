@@ -130,7 +130,7 @@ static
 void	robot_status_reset	(void);
 
 static
-void	cam_session		(int cam);
+int	cam_session		(int cam);
 
 static
 int	robot_steps		(char *cam_data);
@@ -152,7 +152,6 @@ int	main	(void)
 	if (rob_init())
 		goto err;
 
-	status++;
 	cam_addr_len	= sizeof(cam_addr);
 	do {
 		cam = accept(tcp, (struct sockaddr *)&cam_addr, &cam_addr_len);
@@ -161,8 +160,10 @@ int	main	(void)
 			goto retry;
 		}
 
-		cam_session(cam);
+		status	= cam_session(cam);
 		close(cam);
+		if (status < 0)
+			break;
 	retry:
 		asm volatile ("" : : : "memory");
 	} while (!sigterm);
@@ -383,7 +384,7 @@ void	robot_status_reset	(void)
 
 
 static
-void	cam_session		(int cam)
+int	cam_session		(int cam)
 {
 	static	int i = 0;
 	char	cam_data[BUFSIZ];
@@ -393,12 +394,12 @@ void	cam_session		(int cam)
 	while (true) {
 		n = read(cam, cam_data, ARRAY_SIZE(cam_data) - 1);
 		if (n < 0)
-			return;
+			return	1;
 		cam_data[n]	= 0;
 		if (!n)
-			return;
+			return	1;
 		if (robot_steps(cam_data))
-			return;
+			return	-1;
 		usleep(delay_us);
 	}
 }
