@@ -336,7 +336,7 @@ int	robot_status_init	(void)
 	if (!fp)
 		return	0;
 
-	if (fread(&robot_status, sizeof(robot_status), 1, robot_status.fp) != 1)
+	if (fread(&robot_status, sizeof(robot_status), 1, fp) != 1)
 		goto eread;
 	robot_status.fp	= fp;
 
