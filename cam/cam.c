@@ -300,6 +300,9 @@ int	session		(int i, img_s *img)
 	time_0 = clock();
 
 	status	= -1;
+	n	= recv(rob, buf, ARRAY_SIZE(cam_data) - 1, 0);
+	if (n < 0)
+		goto err;
 	if (proc_cv(&blue11, img))
 		goto err;
 	status--;
