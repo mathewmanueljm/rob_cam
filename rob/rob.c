@@ -24,6 +24,7 @@
 #include <libalx/base/compiler/unused.h>
 #include <libalx/base/errno/error.h>
 #include <libalx/base/linux/membarrier.h>
+#include <libalx/base/signal/sigpipe.h>
 #include <libalx/base/signal/sigterm.h>
 #include <libalx/base/socket/tcp/server.h>
 #include <libalx/base/stdio/printf/sbprintf.h>
@@ -95,10 +96,11 @@ static	struct Robot_Status	robot_status;
 #if 0
 static	FILE			*robot;		/* telnet */
 #else
-struct Alx_UR			*robot;
+static	struct Alx_UR		*robot;
 #endif
 /* cam */
 static	int			tcp;
+static	int			cam;
 
 
 /******************************************************************************
@@ -119,6 +121,12 @@ static
 int	tcp_init		(void);
 static
 int	tcp_deinit		(void);
+static
+int	cam_init		(void);
+static
+int	cam_deinit		(void);
+static
+int	cam_reinit		(void);
 
 static
 int	robot_status_init	(void);
@@ -130,7 +138,7 @@ static
 void	robot_status_reset	(void);
 
 static
-int	cam_session		(int cam);
+int	cam_session		(void);
 
 static
 int	robot_steps		(char *cam_data);
@@ -143,35 +151,27 @@ int	robot_step_info		(char *str);
  ******************************************************************************/
 int	main	(void)
 {
-	int			cam;
-	struct sockaddr_storage	cam_addr = {0};
-	socklen_t		cam_addr_len;
-	int			status;
+	int	status;
 
 	status	= 1;
 	if (rob_init())
-		goto err;
+		goto err0;
 
-	cam_addr_len	= sizeof(cam_addr);
-	do {
-		cam = accept(tcp, (struct sockaddr *)&cam_addr, &cam_addr_len);
-		if (cam < 0) {
-			usleep(delay_us);
-			goto retry;
+	for (int i = 0; mb(), !sigterm; i++) {
+		if (sigpipe) {
+			if (cam_reinit())
+				goto err;
 		}
-
-		status	= cam_session(cam);
-		close(cam);
+		status	= cam_session();
 		if (status < 0)
-			break;
-	retry:
-		asm volatile ("" : : : "memory");
-	} while (!sigterm);
+			goto err;
+	};
 
 	status	= 0;
+err:
 	if (rob_deinit())
 		status	+= 32;
-err:
+err0:
 	fprintf(stderr, "rob#%"PRIpid": ERROR: main(): %i\n", pid, status);
 	perrorx(NULL);
 
@@ -189,6 +189,9 @@ int	rob_init		(void)
 
 	pid	= getpid();
 	status	= -1;
+	if (sigpipe_init())
+		goto err0;
+	status--;
 	if (sigterm_init())
 		goto err0;
 	status--;
@@ -199,9 +202,14 @@ int	rob_init		(void)
 		goto err0;
 	status--;
 	if (tcp_init())
-		goto err;
+		goto err1;
+	status--;
+	if (cam_init())
+		goto err2;
 	return	0;
-err:
+err2:
+	tcp_deinit();
+err1:
 	robot_deinit();
 err0:
 	fprintf(stderr, "rob#%"PRIpid": ERROR: rob_init(): %i\n", pid, status);
@@ -214,12 +222,14 @@ int	rob_deinit		(void)
 	int	status;
 
 	status	= 0;
-	if (tcp_deinit())
+	if (cam_deinit())
 		status -= 1;
-	if (robot_deinit())
+	if (tcp_deinit())
 		status -= 2;
-	if (robot_status_deinit())
+	if (robot_deinit())
 		status -= 4;
+	if (robot_status_deinit())
+		status -= 8;
 
 	return	status;
 }
@@ -318,6 +328,31 @@ int	tcp_deinit		(void)
 	return	close(tcp);
 }
 
+static
+int	cam_init		(void)
+{
+	struct sockaddr_storage	cam_addr = {0};
+	socklen_t		cam_addr_len;
+
+	cam_addr_len	= sizeof(cam_addr);
+	cam = accept(tcp, (struct sockaddr *)&cam_addr, &cam_addr_len);
+	return	cam < 0;
+}
+
+static
+int	cam_deinit		(void)
+{
+	return	close(cam);
+}
+
+static
+int	cam_reinit		(void)
+{
+
+	cam_deinit();
+	return	cam_init();
+}
+
 
 static
 int	robot_status_init	(void)
@@ -384,7 +419,7 @@ void	robot_status_reset	(void)
 
 
 static
-int	cam_session		(int cam)
+int	cam_session		(void)
 {
 	static	int i = 0;
 	char	cam_data[BUFSIZ];
