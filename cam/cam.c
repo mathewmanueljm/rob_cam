@@ -99,6 +99,8 @@ void	cv_deinit	(img_s *img);
 static
 int	session		(int i, img_s *img);
 static
+int	wait_rob	(void);
+static
 int	proc_cv		(uint8_t *restrict blue11, img_s *restrict img);
 
 
@@ -300,9 +302,9 @@ int	session		(int i, img_s *img)
 	time_0 = clock();
 
 	status	= -1;
-	n	= recv(rob, buf, ARRAY_SIZE(cam_data) - 1, 0);
-	if (n < 0)
+	if (wait_rob())
 		goto err;
+	status--;
 	if (proc_cv(&blue11, img))
 		goto err;
 	status--;
@@ -321,6 +323,26 @@ int	session		(int i, img_s *img)
 	return	0;
 err:
 	fprintf(stderr, "cam#%"PRIpid": ERROR: session(): %i\n", pid, status);
+	return	status;
+}
+
+static
+int	wait_rob	(void)
+{
+	char	buf[BUFSIZ];
+	ssize_t	n;
+	int	status;
+
+	status	= -1;
+	n	= recv(rob, buf, ARRAY_SIZE(buf) - 1, 0);
+	if (n < 0)
+		goto err;
+	status--;
+	if (!n)
+		goto err;
+	return	0;
+err:
+	fprintf(stderr, "cam#%"PRIpid": ERROR: wait_rob(): %i\n", pid, status);
 	return	status;
 }
 
