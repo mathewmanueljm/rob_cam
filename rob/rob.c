@@ -125,8 +125,6 @@ static
 int	cam_init		(void);
 static
 int	cam_deinit		(void);
-static
-int	cam_reinit		(void);
 
 static
 int	robot_status_init	(void);
@@ -158,9 +156,10 @@ int	main	(void)
 		goto err0;
 
 	for (int i = 0; mb(), !sigterm; i++) {
+	fprintf(stderr, "rob#%"PRIpid": ERROR: main: %i\n", pid, status);
 		if (sigpipe) {
-			if (cam_reinit())
-				goto err;
+	fprintf(stderr, "rob#%"PRIpid": ERROR: sigpipe: %i\n", pid, status);
+			goto err;
 		}
 		status	= cam_session();
 		if (status < 0)
@@ -345,14 +344,6 @@ int	cam_deinit		(void)
 	return	close(cam);
 }
 
-static
-int	cam_reinit		(void)
-{
-
-	cam_deinit();
-	return	cam_init();
-}
-
 
 static
 int	robot_status_init	(void)
@@ -435,6 +426,7 @@ int	cam_session		(void)
 			return	1;
 		if (robot_steps(cam_data))
 			return	-1;
+		send(cam, "\n", 1, 0);
 		usleep(delay_us);
 	}
 }
