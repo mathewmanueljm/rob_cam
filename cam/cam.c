@@ -115,8 +115,10 @@ int	main	(void)
 		goto err0;
 
 	for (int i = 0; mb(), !sigterm; i++) {
-		if (sigpipe)
-			rob_reinit();
+		if (sigpipe) {
+			if (rob_reinit())
+				goto err;
+		}
 		status	= session(i, img);
 		if (status)
 			goto err;
@@ -228,9 +230,8 @@ static
 int	rob_reinit	(void)
 {
 
-	close(rob);
-	rob	= tcp_client_open(rob_addr, rob_port);
-	return	rob < 0;
+	rob_deinit();
+	return	rob_init();
 }
 
 static
