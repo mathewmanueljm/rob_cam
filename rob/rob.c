@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #include <sys/socket.h>
+#include <sys/types.h>
 //#include <sys/syscall.h>
 #include <unistd.h>
 
@@ -125,6 +126,8 @@ static
 int	cam_init		(void);
 static
 int	cam_deinit		(void);
+static
+int	cam_reinit		(void);
 
 static
 int	robot_status_init	(void);
@@ -137,6 +140,8 @@ void	robot_status_reset	(void);
 
 static
 int	cam_session		(void);
+static
+int	signal_cam_rdy		(void);
 
 static
 int	robot_steps		(char *cam_data);
@@ -156,14 +161,15 @@ int	main	(void)
 		goto err0;
 
 	for (int i = 0; mb(), !sigterm; i++) {
-	fprintf(stderr, "rob#%"PRIpid": ERROR: main: %i\n", pid, status);
-		if (sigpipe) {
-	fprintf(stderr, "rob#%"PRIpid": ERROR: sigpipe: %i\n", pid, status);
+		if (sigpipe)
 			goto err;
-		}
 		status	= cam_session();
 		if (status < 0)
 			goto err;
+		if (status) {
+			if (cam_reinit())
+				goto err;
+		}
 	};
 
 	status	= 0;
@@ -332,16 +338,34 @@ int	cam_init		(void)
 {
 	struct sockaddr_storage	cam_addr = {0};
 	socklen_t		cam_addr_len;
+	int			status;
 
+	status	= -1;
 	cam_addr_len	= sizeof(cam_addr);
 	cam = accept(tcp, (struct sockaddr *)&cam_addr, &cam_addr_len);
-	return	cam < 0;
+	if (cam < 0)
+		goto err;
+	status--;
+	if (signal_cam_rdy())
+		goto err;
+	return	0;
+err:
+	fprintf(stderr, "rob#%"PRIpid": ERROR: cam_init(): %i\n", pid, status);
+	return	status;
 }
 
 static
 int	cam_deinit		(void)
 {
 	return	close(cam);
+}
+
+static
+int	cam_reinit		(void)
+{
+
+	cam_deinit();
+	return	cam_init();
 }
 
 
@@ -412,23 +436,41 @@ void	robot_status_reset	(void)
 static
 int	cam_session		(void)
 {
-	static	int i = 0;
 	char	cam_data[BUFSIZ];
 	ssize_t	n;
+	int	status;
 
-	i++;
-	while (true) {
-		n = read(cam, cam_data, ARRAY_SIZE(cam_data) - 1);
-		if (n < 0)
-			return	1;
-		cam_data[n]	= 0;
-		if (!n)
-			return	1;
-		if (robot_steps(cam_data))
-			return	-1;
-		send(cam, "\n", 1, 0);
-		usleep(delay_us);
-	}
+	status	= 1;
+	n = read(cam, cam_data, ARRAY_SIZE(cam_data) - 1);
+	if (n < 0)
+		goto err;
+	cam_data[n] = 0;
+	status++;
+	if (!n)
+		goto err;
+	status	= -1;
+	if (robot_steps(cam_data))
+		goto err;
+	status	= 10;
+	if (signal_cam_rdy())
+		goto err;
+	usleep(delay_us);
+
+	return	0;
+err:
+	fprintf(stderr, "rob#%"PRIpid": ERROR: cam_session(): %i\n", pid, status);
+	return	status;
+}
+
+static
+int	signal_cam_rdy		(void)
+{
+	ssize_t	n;
+
+	n = send(cam, "\n", 1, 0);
+	if (n < 0)
+		return	1;
+	return	0;
 }
 
 
