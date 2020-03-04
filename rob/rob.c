@@ -7,17 +7,13 @@
 /******************************************************************************
  ******* include **************************************************************
  ******************************************************************************/
-#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
-//#include <sys/syscall.h>
 #include <unistd.h>
-
-#include <linux/membarrier.h>
 
 #define ALX_NO_PREFIX
 #include <libalx/alx/robot/ur/ur.h>
@@ -73,6 +69,7 @@ struct	Robot_Step_Info {
 struct	Robot_Status {
 	FILE	*fp;
 	int	step;
+	char	cam_data[BUFSIZ];
 	struct Robot_Step_Info	info[ROBOT_STEPS];
 };
 
@@ -144,7 +141,7 @@ static
 int	signal_cam_rdy		(void);
 
 static
-int	robot_steps		(char *cam_data);
+int	robot_steps		(void);
 static
 int	robot_step_info		(char *str);
 
@@ -160,20 +157,35 @@ int	main	(void)
 	if (rob_init())
 		goto err0;
 
-	for (int i = 0; mb(), !sigterm; i++) {
+	status++;
+	if (robot_status.step) {
+		if (robot_steps())
+			goto err1;
+	}
+	status++;
+	if (cam_init())
+		goto err1;
+
+	mb();
+	for (int i = 0; !sigterm; i++) {
 		if (sigpipe)
 			goto err;
 		status	= cam_session();
 		if (status < 0)
 			goto err;
 		if (status) {
+			status	= 3;
 			if (cam_reinit())
 				goto err;
 		}
+		mb();
 	};
 
 	status	= 0;
 err:
+	if (cam_deinit())
+		status	+= 16;
+err1:
 	if (rob_deinit())
 		status	+= 32;
 err0:
@@ -208,12 +220,7 @@ int	rob_init		(void)
 	status--;
 	if (tcp_init())
 		goto err1;
-	status--;
-	if (cam_init())
-		goto err2;
 	return	0;
-err2:
-	tcp_deinit();
 err1:
 	robot_deinit();
 err0:
@@ -227,14 +234,12 @@ int	rob_deinit		(void)
 	int	status;
 
 	status	= 0;
-	if (cam_deinit())
-		status -= 1;
 	if (tcp_deinit())
-		status -= 2;
+		status -= 1;
 	if (robot_deinit())
-		status -= 4;
+		status -= 2;
 	if (robot_status_deinit())
-		status -= 8;
+		status -= 4;
 
 	return	status;
 }
@@ -304,7 +309,7 @@ int	robot_init		(void)
 err:
 	robot_deinit();
 err0:
-	fprintf(stderr, "rob#%"PRIpid": ERROR: robot_init(): %i\n", pid, status);
+	fprintf(stderr, "rob#%"PRIpid": ERROR: robot_init(): %i\n",pid, status);
 	return	status;
 }
 
@@ -384,6 +389,7 @@ int	robot_status_init	(void)
 
 	return	0;
 eread:
+	fclose(fp);
 	memset(&robot_status, 0, sizeof(robot_status));
 	return	-2;
 }
@@ -436,20 +442,20 @@ void	robot_status_reset	(void)
 static
 int	cam_session		(void)
 {
-	char	cam_data[BUFSIZ];
 	ssize_t	n;
 	int	status;
 
 	status	= 1;
-	n = read(cam, cam_data, ARRAY_SIZE(cam_data) - 1);
+	n	= recv(cam, robot_status.cam_data,
+				ARRAY_SIZE(robot_status.cam_data) - 1, 0);
 	if (n < 0)
 		goto err;
-	cam_data[n] = 0;
+	robot_status.cam_data[n] = 0;
 	status++;
 	if (!n)
 		goto err;
 	status	= -1;
-	if (robot_steps(cam_data))
+	if (robot_steps())
 		goto err;
 	status	= 10;
 	if (signal_cam_rdy())
@@ -458,7 +464,7 @@ int	cam_session		(void)
 
 	return	0;
 err:
-	fprintf(stderr, "rob#%"PRIpid": ERROR: cam_session(): %i\n", pid, status);
+	fprintf(stderr, "rob#%"PRIpid": ERROR: cam_session(): %i\n",pid,status);
 	return	status;
 }
 
@@ -475,14 +481,14 @@ int	signal_cam_rdy		(void)
 
 
 static
-int	robot_steps		(char *cam_data)
+int	robot_steps		(void)
 {
 
 	switch (robot_status.step) {
 	case ROBOT_STEP_IDLE:
 		robot_status_update(ROBOT_STEP_INFO);
 	case ROBOT_STEP_INFO:
-		if (robot_step_info(cam_data))
+		if (robot_step_info(robot_status.cam_data))
 			goto err;
 		robot_status_update(ROBOT_STEP_IDLE);
 	}
