@@ -71,11 +71,11 @@ noreturn void	tcp_session	(int rob, int i)
 			break;
 		usleep(CYCLE_DELAY);
 	}
-	fprintf(stderr, "session#%i: session finished succesfully!", i);
+	fprintf(stderr, "session#%i: session finished succesfully!\n", i);
 	close(rob);
 	exit(EXIT_SUCCESS);
 err:
-	fprintf(stderr, "session#%i: msg#%i: read() failed; session ended", i, j);
+	fprintf(stderr, "session#%i: msg#%i: read() failed; session ended\n", i, j);
 	close(rob);
 	exit(EXIT_FAILURE);
 }
@@ -105,13 +105,13 @@ int	main	(void)
 	for (int i = 0; true; i++) {
 		rob = accept(tcp, (struct sockaddr *)&cli_addr, &cli_addr_len);
 		if (rob < 0) {
-			fprintf(stderr, "session#%i: accept() failed", i);
+			fprintf(stderr, "session#%i: accept() failed\n", i);
 			continue;
 		}
 
 		pid	= fork();
 		if (pid == -1) {
-			fprintf(stderr, "session#%i: fork() failed", i);
+			fprintf(stderr, "session#%i: fork() failed\n", i);
 			continue;
 		} else if (!pid) {
 			tcp_session(rob, i);
