@@ -116,7 +116,8 @@ int	main	(void)
 	if (cam_init(&img))
 		goto err0;
 
-	for (int i = 0; mb(), !sigterm; i++) {
+	mb();
+	for (int i = 0; !sigterm; i++) {
 		if (sigpipe) {
 			if (rob_reinit())
 				goto err;
@@ -125,6 +126,7 @@ int	main	(void)
 		if (status)
 			goto err;
 		usleep(delay_us);
+		mb();
 	}
 
 	status	= 0;
