@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 
 export	ROBOT_TYPE=ur
-export	ROBOT_ADDR=192.168.0.1
+export	ROBOT_ADDR=robot
 export	ROBOT_PORT=30002
 export	ROBOT_USER=
 export	ROBOT_PASSWD=
