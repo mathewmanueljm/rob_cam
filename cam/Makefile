@@ -11,3 +11,5 @@ cam: cam.c
 			$< -o $@					\
 			`pkg-config --libs libalx-cv libalx-base`
 
+clean:
+	rm -f cam
