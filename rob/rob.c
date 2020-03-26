@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -19,7 +20,7 @@
 #include <libalx/alx/robot/ur/ur.h>
 #include <libalx/base/compiler/size.h>
 #include <libalx/base/compiler/unused.h>
-#include <libalx/base/errno/error.h>
+#include <libalx/base/errno/perror.h>
 #include <libalx/base/linux/membarrier.h>
 #include <libalx/base/signal/sigpipe.h>
 #include <libalx/base/signal/sigterm.h>
