@@ -16,3 +16,5 @@ rob: rob.c
 			`pkg-config --static --libs libalx-telnet-tcp`	\
 			`pkg-config --static --libs libalx-base`
 
+clean:
+	rm -f rob
