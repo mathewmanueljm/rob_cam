@@ -19,7 +19,7 @@
 
 #define ALX_NO_PREFIX
 #include <libalx/base/compiler/size.h>
-#include <libalx/base/errno/error.h>
+#include <libalx/base/errno/perror.h>
 #include <libalx/base/linux/membarrier.h>
 #include <libalx/base/signal/sigpipe.h>
 #include <libalx/base/signal/sigterm.h>
@@ -27,12 +27,8 @@
 #include <libalx/base/stdio/printf/sbprintf.h>
 #include <libalx/base/stdlib/getenv/getenv_i.h>
 #include <libalx/base/stdlib/getenv/getenv_s.h>
-#include <libalx/base/string/strcpy/strlcpys.h>
 #include <libalx/base/sys/types.h>
-#include <libalx/extra/cv/core/array.h>
-#include <libalx/extra/cv/core/img.h>
-#include <libalx/extra/cv/core/pixel.h>
-#include <libalx/extra/cv/videoio/cam.h>
+#include <libalx/extra/cv/cv.h>
 
 
 /******************************************************************************
@@ -267,15 +263,10 @@ int	cv_init		(img_s **img)
 	int	status;
 
 	status	= -1;
-	if (alx_cv_alloc_img(img))
-		goto err0;
-	status--;
-	if (alx_cv_init_img(*img, 1, 1))
-		goto err1;
+	if (alx_cv_init_img(img))
+		goto err;
 	return	0;
-err1:
-	alx_cv_free_img(*img);
-err0:
+err:
 	fprintf(stderr, "cam#%"PRIpid": ERROR: cv_init(): %i\n", pid, status);
 	return	status;
 }
@@ -285,7 +276,6 @@ void	cv_deinit	(img_s *img)
 {
 
 	alx_cv_deinit_img(img);
-	alx_cv_free_img(img);
 }
 
 
@@ -362,7 +352,7 @@ int	proc_cv		(uint8_t *restrict blue11, img_s *restrict img)
 	if (alx_cv_cam_read(img, camera))
 		goto err;
 	status--;
-	if (alx_cv_component(img, ALX_CV_CMP_BLUE))
+	if (alx_cv_component(img, ALX_CV_CMP_BGR_B))
 		goto err;
 	status--;
 	if (alx_cv_pixel_get_u8(img, blue11, 1, 1))
