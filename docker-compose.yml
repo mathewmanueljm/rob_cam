@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 
 services:
 
@@ -13,28 +13,17 @@ services:
             - ROB_ADDR=rob
 #            - ROB_CAMS_MAX=1
             - ROB_PORT=13100
-#            - ROBOT_ADDR=192.168.0.1
-#            - ROBOT_PASSWD=
-#            - ROBOT_PORT=30002
-#            - ROBOT_PORT=23
-#            - ROBOT_STATUS_FNAME=status.log
-#            - ROBOT_TYPE=kwr
-#            - ROBOT_TYPE=ur
-#            - ROBOT_USER=as
 
     rob:
         image: alejandrocolomar/rob_cam:rob
         environment:
-#            - CAMERA_IDX=0
             - DELAY_LOGIN=1000000
             - DELAY_US=100000
-#            - ROB_ADDR=rob
             - ROB_CAMS_MAX=10
             - ROB_PORT=13100
             - ROBOT_ADDR=robot
             - ROBOT_PASSWD=
             - ROBOT_PORT=30002
-#            - ROBOT_PORT=23
             - ROBOT_STATUS_FNAME=status.log
 #            - ROBOT_TYPE=kwr
             - ROBOT_TYPE=ur
@@ -42,4 +31,3 @@ services:
 
     robot:
         image: alejandrocolomar/rob_cam:ur-sim
-#        image: secobau/telnetd:alpine
