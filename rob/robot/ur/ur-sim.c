@@ -20,10 +20,10 @@
 #include <unistd.h>
 
 #define ALX_NO_PREFIX
-#include <libalx/base/compiler/size.h>
-#include <libalx/base/errno/perror.h>
-#include <libalx/base/socket/tcp/server.h>
-#include <libalx/base/stdio/printf/sbprintf.h>
+#include <libalx/base/compiler.h>
+#include <libalx/base/errno.h>
+#include <libalx/base/stdio.h>
+#include <libalx/base/sys.h>
 
 
 /******************************************************************************
