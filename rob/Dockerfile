@@ -1,4 +1,4 @@
-FROM	debian:stable	AS build
+FROM	debian:stable-slim	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
