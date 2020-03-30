@@ -11,6 +11,9 @@ services:
             - DELAY_US=10000
             - ROB_ADDR=rob
             - ROB_PORT=13100
+        depends_on:
+            - rob
+        restart: always
 
     rob:
         image: alejandrocolomar/rob_cam:rob
@@ -26,6 +29,11 @@ services:
 #            - ROBOT_TYPE=kwr
             - ROBOT_TYPE=ur
             - ROBOT_USER=
+        depends_on:
+            - robot
+        restart: always
 
     robot:
         image: alejandrocolomar/rob_cam:ur-sim
+        restart: always
+
