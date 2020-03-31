@@ -504,7 +504,7 @@ int	robot_step_info		(char *str)
 #if 0
 	return	telnet_send(robot, str);
 #else
-	return	ur_puts(robot, str, delay_us, stdout);
+	return	ur_puts(robot, str, delay_us);
 #endif
 }
 
