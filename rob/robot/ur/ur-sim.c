@@ -20,10 +20,10 @@
 #include <unistd.h>
 
 #define ALX_NO_PREFIX
-#include <libalx/base/compiler/size.h>
-#include <libalx/base/errno/perror.h>
-#include <libalx/base/socket/tcp/server.h>
-#include <libalx/base/stdio/printf/sbprintf.h>
+#include <libalx/base/compiler.h>
+#include <libalx/base/errno.h>
+#include <libalx/base/stdio.h>
+#include <libalx/base/sys.h>
 
 
 /******************************************************************************
@@ -86,12 +86,12 @@ err:
  ******************************************************************************/
 int	main	(void)
 {
-	int				tcp;
-	int				rob;
+	int			tcp;
+	int			rob;
 	struct sockaddr_storage	cli_addr = {0};
-	socklen_t			cli_addr_len;
-	int				status;
-	pid_t				pid;
+	socklen_t		cli_addr_len;
+	int			status;
+	pid_t			pid;
 
 	status	= EXIT_FAILURE;
 	tcp	= tcp_server_open(SERVER_PORT, LISTEN_BACKLOG);
@@ -110,7 +110,7 @@ int	main	(void)
 		}
 
 		pid	= fork();
-		if (pid == -1) {
+		if (pid < 0) {
 			fprintf(stderr, "session#%i: fork() failed\n", i);
 			continue;
 		} else if (!pid) {
