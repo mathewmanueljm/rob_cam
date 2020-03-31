@@ -18,16 +18,13 @@
 #include <unistd.h>
 
 #define ALX_NO_PREFIX
-#include <libalx/base/compiler/size.h>
-#include <libalx/base/errno/perror.h>
-#include <libalx/base/linux/membarrier.h>
-#include <libalx/base/signal/sigpipe.h>
-#include <libalx/base/signal/sigterm.h>
-#include <libalx/base/socket/tcp/client.h>
-#include <libalx/base/stdio/printf/sbprintf.h>
-#include <libalx/base/stdlib/getenv/getenv_i.h>
-#include <libalx/base/stdlib/getenv/getenv_s.h>
-#include <libalx/base/sys/types.h>
+#include <libalx/base/compiler.h>
+#include <libalx/base/errno.h>
+#include <libalx/base/linux.h>
+#include <libalx/base/signal.h>
+#include <libalx/base/stdio.h>
+#include <libalx/base/stdlib.h>
+#include <libalx/base/sys.h>
 #include <libalx/extra/cv/cv.h>
 
 
