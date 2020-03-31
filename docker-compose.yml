@@ -5,12 +5,12 @@ services:
     cam:
         image: alejandrocolomar/rob_cam:cam
         devices:
-            - "/dev/video0:/dev/video0"
+        -   "/dev/video0:/dev/video0"
         environment:
-            - CAMERA_IDX=0
-            - DELAY_US=10000
-            - ROB_ADDR=rob
-            - ROB_PORT=13100
+        -   CAMERA_IDX=0
+        -   DELAY_US=10000
+        -   ROB_ADDR=rob
+        -   ROB_PORT=13100
         depends_on:
             - rob
         restart: always
@@ -18,19 +18,19 @@ services:
     rob:
         image: alejandrocolomar/rob_cam:rob
         environment:
-            - DELAY_LOGIN=1000000
-            - DELAY_US=100000
-            - ROB_CAMS_MAX=1
-            - ROB_PORT=13100
-            - ROBOT_ADDR=robot
-            - ROBOT_PASSWD=
-            - ROBOT_PORT=30002
-            - ROBOT_STATUS_FNAME=status.log
-#            - ROBOT_TYPE=kwr
-            - ROBOT_TYPE=ur
-            - ROBOT_USER=
+        -   DELAY_LOGIN=1000000
+        -   DELAY_US=100000
+        -   ROB_CAMS_MAX=1
+        -   ROB_PORT=13100
+        -   ROBOT_ADDR=robot
+        -   ROBOT_PASSWD=
+        -   ROBOT_PORT=30002
+        -   ROBOT_STATUS_FNAME=status.log
+#        -   ROBOT_TYPE=kwr
+        -   ROBOT_TYPE=ur
+        -   ROBOT_USER=
         depends_on:
-            - robot
+        -   robot
         restart: always
 
     robot:
