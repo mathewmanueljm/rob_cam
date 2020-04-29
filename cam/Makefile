@@ -6,7 +6,7 @@ CFLAGS		= $(CFLAGS_W) $(CFLAGS_O)
 all: cam
 
 cam: cam.c
-	gcc $(CFLAGS)							\
+	gcc-10 $(CFLAGS)							\
 			`pkg-config --cflags libalx-base libalx-cv`	\
 			$< -o $@					\
 			`pkg-config --libs libalx-cv libalx-base`

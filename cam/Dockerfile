@@ -7,8 +7,8 @@ FROM	debian:testing	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
-			gcc \
-			g++ \
+			gcc-10 \
+			g++-10 \
 			make \
 			git \
 			pkg-config \
