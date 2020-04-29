@@ -18,7 +18,7 @@ services:
         -   ROB_ADDR=rob
         -   ROB_PORT=13100
         depends_on:
-            - rob
+        -   rob
         restart: always
 
     rob:
