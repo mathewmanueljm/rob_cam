@@ -1,3 +1,8 @@
+###############################################################################
+#        Copyright (C) 2020        Sebastian Francisco Colomar Bauza          #
+#        SPDX-License-Identifier:  GPL-2.0-only                               #
+###############################################################################
+
 FROM	debian:testing	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
