@@ -33,7 +33,6 @@
  ******************************************************************************/
 #define ENV_ROBOT_TYPE		"ROBOT_TYPE"
 #define ENV_ROBOT_ADDR		"ROBOT_ADDR"
-#define ENV_ROBOT_PORT		"ROBOT_PORT"
 #define ENV_ROBOT_USER		"ROBOT_USER"
 #define ENV_ROBOT_PASSWD	"ROBOT_PASSWD"
 #define ENV_ROBOT_STATUS_FNAME	"ROBOT_STATUS_FNAME"
@@ -76,7 +75,6 @@ struct	Robot_Status {
  ******************************************************************************/
 /* environment variables */
 static	char			robot_addr[_POSIX_ARG_MAX];
-static	char			robot_port[_POSIX_ARG_MAX];
 static	char			robot_user[_POSIX_ARG_MAX];
 static	char			robot_passwd[_POSIX_ARG_MAX];
 static	char			robot_status_fname[FILENAME_MAX];
@@ -249,9 +247,6 @@ int	env_init		(void)
 
 	status	= -1;
 	if (getenv_s(robot_addr, ARRAY_SIZE(robot_addr), ENV_ROBOT_ADDR))
-		goto err;
-	status--;
-	if (getenv_s(robot_port, ARRAY_SIZE(robot_port), ENV_ROBOT_PORT))
 		goto err;
 	status--;
 	if (getenv_s(robot_user, ARRAY_SIZE(robot_user), ENV_ROBOT_USER))
