@@ -295,7 +295,7 @@ int	robot_init		(void)
 	if (telnet_login(robot, robot_user, robot_passwd, delay_login))
 		goto err;
 #else
-	if (ur_init(&robot, robot_addr, robot_port, delay_login))
+	if (ur_init(&robot, robot_addr))
 		goto err0;
 #endif
 	status--;
@@ -504,7 +504,7 @@ int	robot_step_info		(char *str)
 #if 0
 	return	telnet_send(robot, str);
 #else
-	return	ur_puts(robot, str, delay_us);
+	return	ur_puts(robot, str);
 #endif
 }
 
