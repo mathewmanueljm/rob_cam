@@ -1,5 +1,6 @@
 ###############################################################################
 #        Copyright (C) 2020        Sebastian Francisco Colomar Bauza          #
+#        Copyright (C) 2020        Alejandro Colomar Andrés                   #
 #        SPDX-License-Identifier:  GPL-2.0-only                               #
 ###############################################################################
 
@@ -17,7 +18,7 @@ services:
         -   ROB_ADDR=rob
         -   ROB_PORT=13100
         depends_on:
-            - rob
+        -   rob
         restart: always
 
     rob:
@@ -29,7 +30,6 @@ services:
         -   ROB_PORT=13100
         -   ROBOT_ADDR=robot
         -   ROBOT_PASSWD=
-        -   ROBOT_PORT=30002
         -   ROBOT_STATUS_FNAME=status.log
 #        -   ROBOT_TYPE=kwr
         -   ROBOT_TYPE=ur

@@ -1,13 +1,14 @@
 ###############################################################################
 #        Copyright (C) 2020        Sebastian Francisco Colomar Bauza          #
+#        Copyright (C) 2020        Alejandro Colomar Andrés                   #
 #        SPDX-License-Identifier:  GPL-2.0-only                               #
 ###############################################################################
 
-FROM	debian:stable-slim	AS build
+FROM	debian:testing-slim	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
-			gcc \
+			gcc-10 \
 			make \
 			git \
 			pkg-config \

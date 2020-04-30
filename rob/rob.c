@@ -33,7 +33,6 @@
  ******************************************************************************/
 #define ENV_ROBOT_TYPE		"ROBOT_TYPE"
 #define ENV_ROBOT_ADDR		"ROBOT_ADDR"
-#define ENV_ROBOT_PORT		"ROBOT_PORT"
 #define ENV_ROBOT_USER		"ROBOT_USER"
 #define ENV_ROBOT_PASSWD	"ROBOT_PASSWD"
 #define ENV_ROBOT_STATUS_FNAME	"ROBOT_STATUS_FNAME"
@@ -76,7 +75,6 @@ struct	Robot_Status {
  ******************************************************************************/
 /* environment variables */
 static	char			robot_addr[_POSIX_ARG_MAX];
-static	char			robot_port[_POSIX_ARG_MAX];
 static	char			robot_user[_POSIX_ARG_MAX];
 static	char			robot_passwd[_POSIX_ARG_MAX];
 static	char			robot_status_fname[FILENAME_MAX];
@@ -251,9 +249,6 @@ int	env_init		(void)
 	if (getenv_s(robot_addr, ARRAY_SIZE(robot_addr), ENV_ROBOT_ADDR))
 		goto err;
 	status--;
-	if (getenv_s(robot_port, ARRAY_SIZE(robot_port), ENV_ROBOT_PORT))
-		goto err;
-	status--;
 	if (getenv_s(robot_user, ARRAY_SIZE(robot_user), ENV_ROBOT_USER))
 		goto err;
 	status--;
@@ -295,7 +290,7 @@ int	robot_init		(void)
 	if (telnet_login(robot, robot_user, robot_passwd, delay_login))
 		goto err;
 #else
-	if (ur_init(&robot, robot_addr, robot_port, delay_login))
+	if (ur_init(&robot, robot_addr))
 		goto err0;
 #endif
 	status--;
@@ -504,7 +499,7 @@ int	robot_step_info		(char *str)
 #if 0
 	return	telnet_send(robot, str);
 #else
-	return	ur_puts(robot, str, delay_us, stdout);
+	return	ur_puts(robot, str);
 #endif
 }
 
