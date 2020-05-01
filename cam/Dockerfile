@@ -8,7 +8,9 @@ FROM	debian:testing	AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
+			gcc \
 			gcc-10 \
+			g++ \
 			g++-10 \
 			make \
 			git \
@@ -26,8 +28,7 @@ WORKDIR	/tmp
 RUN	git clone https://github.com/alejandro-colomar/libalx.git	&& \
 	make	base cv				-C libalx	-j 8	&& \
 	make	install-base install-cv		-C libalx
-RUN	git clone --single-branch --branch cam \
-		https://github.com/alejandro-colomar/rob_cam.git	&& \
+RUN	git clone https://github.com/alejandro-colomar/rob_cam.git	&& \
 	make	-C rob_cam/cam/	-j 2
 
 FROM	debian:testing

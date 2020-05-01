@@ -9,6 +9,7 @@ RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
 			gcc \
+			gcc-10 \
 			make \
 			git \
 			pkg-config \
