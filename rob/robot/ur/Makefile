@@ -7,7 +7,7 @@ CFLAGS		= $(CFLAGS_W) $(CFLAGS_O)
 all: ur-sim
 
 ur-sim: ur-sim.c
-	gcc $(CFLAGS) 							\
+	gcc-10 $(CFLAGS) 						\
 			`pkg-config --static --cflags libalx-base`	\
 			`pkg-config --static --cflags libalx-robot`	\
 			$< -o $@					\
