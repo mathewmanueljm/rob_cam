@@ -31,7 +31,7 @@ RUN	git clone https://github.com/alejandro-colomar/libalx.git	&& \
 RUN	git clone https://github.com/alejandro-colomar/rob_cam.git	&& \
 	make	-C rob_cam/rob/	-j 2
 
-FROM	debian@sha256:31c7d1766dad20666e72712f71a340726964797750b4e53d4ae561fb3c9e4623
+FROM	debian@sha256:21a1267db36931b0a89f1fece2e54afa78438951fcaadd529837b7def15d04de
 WORKDIR	/app
 RUN	apt-get update							&& \
 	apt-get upgrade --yes						&& \
