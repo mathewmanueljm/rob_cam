@@ -9,7 +9,7 @@ version: "2"
 services:
 
     cam:
-        image: alejandrocolomar/rob_cam:cam_0.5.2
+        image: alejandrocolomar/rob_cam@sha256:d4f0cbda38112ad6ab7345df51d138b065c30ff393bb502a6821925901014117
         devices:
         -   "/dev/video0:/dev/video0"
         environment:
@@ -22,7 +22,7 @@ services:
         restart: always
 
     rob:
-        image: alejandrocolomar/rob_cam:rob_0.5.2.2
+        image: alejandrocolomar/rob_cam@sha256:3725a8c673128861c5dd60f1f98d6c235b2612133494e3ca8e4d2c7abbedca86
         environment:
         -   DELAY_LOGIN=1000000
         -   DELAY_US=100000
@@ -40,7 +40,7 @@ services:
         restart: always
 
     robot:
-        image: alejandrocolomar/rob_cam:ur-sim_0.5.2.2
+        image: alejandrocolomar/rob_cam@sha256:b11e6624f3c7a2205f69c9c89ec4e0ce98cebdd664a41bf9902552567df64bd6
         restart: always
 
 ################################################################################
