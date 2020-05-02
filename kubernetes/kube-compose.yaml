@@ -6,19 +6,44 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: robot
+    name: cam
 spec:
     selector:
         matchLabels:
-            name: robot
+            name: cam
     template:
         metadata:
             labels:
-                name: robot
+                name: cam
         spec:
+            initContainers:
+            -   name: init
+                image: busybox
+                command:
+                -   sh
+                -   -c
+                -   sleep 2
             containers:
-                -   name: robot
-                    image: alejandrocolomar/rob_cam:ur-sim
+            -   name: cam
+                image: alejandrocolomar/rob_cam@sha256:d4f0cbda38112ad6ab7345df51d138b065c30ff393bb502a6821925901014117
+                volumeMounts:
+                -   name: dev-video0
+                    mountPath: /dev/video0
+                securityContext:
+                    privileged: true
+                env:
+                -   name: CAMERA_IDX
+                    value: "0"
+                -   name: DELAY_US
+                    value: "10000"
+                -   name: ROB_ADDR
+                    value: "rob"
+                -   name: ROB_PORT
+                    value: "13100"
+            volumes:
+            -   name: dev-video0
+                hostPath:
+                    path: /dev/video0
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -42,7 +67,7 @@ spec:
                 -   sleep 1
             containers:
             -   name: rob
-                image: alejandrocolomar/rob_cam:rob
+                image: alejandrocolomar/rob_cam@sha256:3725a8c673128861c5dd60f1f98d6c235b2612133494e3ca8e4d2c7abbedca86
                 env:
                 -   name: DELAY_LOGIN
                     value: "1000000"
@@ -68,44 +93,29 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: cam
+    name: robot
 spec:
     selector:
         matchLabels:
-            name: cam
+            name: robot
     template:
         metadata:
             labels:
-                name: cam
+                name: robot
         spec:
-            initContainers:
-            -   name: init
-                image: busybox
-                command:
-                -   sh
-                -   -c
-                -   sleep 2
             containers:
-            -   name: cam
-                image: alejandrocolomar/rob_cam:cam
-                volumeMounts:
-                -   name: dev-video0
-                    mountPath: /dev/video0
-                securityContext:
-                    privileged: true
-                env:
-                -   name: CAMERA_IDX
-                    value: "0"
-                -   name: DELAY_US
-                    value: "10000"
-                -   name: ROB_ADDR
-                    value: "rob"
-                -   name: ROB_PORT
-                    value: "13100"
-            volumes:
-            -   name: dev-video0
-                hostPath:
-                    path: /dev/video0
+            -   name: robot
+                image: alejandrocolomar/rob_cam@sha256:b11e6624f3c7a2205f69c9c89ec4e0ce98cebdd664a41bf9902552567df64bd6
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: rob
+spec:
+    selector:
+        name: rob
+    ports:
+    -   port: 13100
 ---
 apiVersion: v1
 kind: Service
@@ -117,37 +127,22 @@ spec:
     ports:
     -   port: 30002
 ---
-apiVersion: v1
-kind: Service
-metadata:
-    name: rob
-spec:
-    selector:
-        name: rob
-    ports:
-    -   port: 13100
-
-################################################################################
-#sudo apt-get update && sudo apt-get install -y apt-transport-https curl       ;
-#echo deb http://apt.kubernetes.io/ kubernetes-xenial main                     \
-#        | sudo tee -a /etc/apt/sources.list.d/kubernetes.list                 ;
-#curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg                 \
-#        | sudo apt-key add -                                                  ;
-#sudo apt-get update && sudo apt-get install -y docker-ce                      ;
-#sudo apt-get install -y kubelet kubeadm kubectl                               ;
-#sudo apt-mark hold kubelet kubeadm kubectl                                    ;
-#ip=< PRIVATE IP OF THE KUBERNETES MASTER >                                    ;
-#echo $ip k8smaster | sudo tee -a /etc/hosts                                   ;
-#sudo kubeadm init                                                             \
-#        --control-plane-endpoint=k8smaster                                    \
-#        --pod-network-cidr=192.168.0.0/16                                     \
-#        --ignore-preflight-errors=all                                         ;
-#mkdir -p $HOME/.kube                                                          ;
-#sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config                         ;
-#sudo chown $(id -u):$(id -g) $HOME/.kube/config                               ;
-#kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml    ;
-#echo "source <(kubectl completion bash)" >> ~/.bashrc                         ;
-#kubectl taint node ideapad node-role.kubernetes.io/master:NoSchedule-         ;
-#kubectl apply  --filename kube-compose.yaml                                   ;
-#kubectl delete --filename kube-compose.yaml                                   ;
-################################################################################
+###############################################################################
+#sudo apt-get update && sudo apt-get install -y apt-transport-https curl      ;
+#echo deb http://apt.kubernetes.io/ kubernetes-xenial main | sudo tee -a /etc/apt/sources.list.d/kubernetes.list ;
+#curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - ;
+#sudo apt-get update && sudo apt-get install -y docker-ce                     ;
+#sudo apt-get install -y kubelet kubeadm kubectl                              ;
+#sudo apt-mark hold kubelet kubeadm kubectl                                   ;
+#ip=< PRIVATE IP OF THE KUBERNETES MASTER >                                   ;
+#echo $ip k8smaster | sudo tee -a /etc/hosts                                  ;
+#sudo kubeadm init --control-plane-endpoint=k8smaster --pod-network-cidr=192.168.0.0/16 --ignore-preflight-errors=all ;
+#mkdir -p $HOME/.kube                                                         ;
+#sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config                        ;
+#sudo chown $(id -u):$(id -g) $HOME/.kube/config                              ;
+#kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml   ;
+#echo "source <(kubectl completion bash)" >> ~/.bashrc                        ;
+#kubectl taint node ideapad node-role.kubernetes.io/master:NoSchedule-        ;
+#kubectl apply  --filename kube-compose.yaml                                  ;
+#kubectl delete --filename kube-compose.yaml                                  ;
+###############################################################################
