@@ -18,7 +18,7 @@ spec:
         spec:
             containers:
                 -   name: robot
-                    image: alejandrocolomar/rob_cam:ur-sim
+                    image: alejandrocolomar/rob_cam:ur-sim_0.5.6
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -42,7 +42,7 @@ spec:
                 -   sleep 1
             containers:
             -   name: rob
-                image: alejandrocolomar/rob_cam:rob
+                image: alejandrocolomar/rob_cam:rob_0.5.6
                 env:
                 -   name: DELAY_LOGIN
                     value: "1000000"
@@ -87,7 +87,7 @@ spec:
                 -   sleep 2
             containers:
             -   name: cam
-                image: alejandrocolomar/rob_cam:cam
+                image: alejandrocolomar/rob_cam:cam_0.5.6
                 volumeMounts:
                 -   name: dev-video0
                     mountPath: /dev/video0
