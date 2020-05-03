@@ -10,6 +10,7 @@ RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
 			gcc \
+			gcc-10 \
 			make \
 			git \
 			pkg-config \
@@ -23,7 +24,7 @@ RUN	apt-get update							&& \
 WORKDIR	/tmp
 RUN	git clone							\
 	    --single-branch						\
-	    --branch v1-b18.5						\
+	    --branch v1-b18.3						\
 	    https://github.com/alejandro-colomar/libalx.git		&& \
 	make	base telnet-tcp robot		-C libalx	-j 8	&& \
 	make	install-base			-C libalx		&& \
