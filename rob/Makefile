@@ -7,7 +7,7 @@ CFLAGS		= $(CFLAGS_W) $(CFLAGS_O)
 all: rob
 
 rob: rob.c
-	gcc-10 $(CFLAGS) 							\
+	gcc $(CFLAGS) 							\
 			`pkg-config --static --cflags libalx-base`	\
 			`pkg-config --static --cflags libalx-telnet-tcp`\
 			`pkg-config --static --cflags libalx-robot`	\
