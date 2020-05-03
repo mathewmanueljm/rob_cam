@@ -51,5 +51,5 @@ COPY	--from=build /tmp/rob_cam/rob/robot/ur/ur-sim ./
 RUN	chmod +x ./ur-sim
 CMD	["./ur-sim"]
 
-# docker container run --tty --network rob_cam_network --name robot --rm alejandrocolomar/rob_cam:ur-sim 
+# docker container run --tty --network rob_cam_network --name robot --rm alejandrocolomar/rob_cam:ur-sim_0.5.6 
 
