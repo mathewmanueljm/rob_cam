@@ -23,8 +23,8 @@ RUN	apt-get update							&& \
 	apt-get clean
 WORKDIR	/tmp
 RUN	git clone							\
-	    --single branch						\
-	    --branch master						\
+	    --single-branch						\
+	    --branch v1.0-b23						\
 	    https://github.com/alejandro-colomar/libalx.git		&& \
 	make	base telnet-tcp robot	-C libalx	-j 8		&& \
 	make	install-base		-C libalx			&& \
@@ -32,7 +32,7 @@ RUN	git clone							\
 	make	install-robot		-C libalx			&& \
 	rm -rf	libalx
 RUN	git clone							\
-	    --single branch						\
+	    --single-branch						\
 	    --branch master						\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/rob/robot/ur/	-j 2

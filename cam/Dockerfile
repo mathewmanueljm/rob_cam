@@ -27,13 +27,13 @@ RUN	apt-get update							&& \
 	apt-get clean
 WORKDIR	/tmp
 RUN	git clone							\
-	    --single branch						\
-	    --branch master						\
+	    --single-branch						\
+	    --branch v1.0-b23						\
 	    https://github.com/alejandro-colomar/libalx.git		&& \
 	make	base cv				-C libalx	-j 8	&& \
 	make	install-base install-cv		-C libalx
 RUN	git clone							\
-	    --single branch						\
+	    --single-branch						\
 	    --branch master						\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/cam/	-j 2
