@@ -18,13 +18,17 @@
 
 #define ALX_NO_PREFIX
 #include <libalx/alx/robot/ur/ur.h>
-#include <libalx/base/compiler.h>
-#include <libalx/base/errno.h>
-#include <libalx/base/linux.h>
-#include <libalx/base/signal.h>
-#include <libalx/base/stdio.h>
-#include <libalx/base/stdlib.h>
-#include <libalx/base/sys.h>
+#include <libalx/base/compiler/size.h>
+#include <libalx/base/compiler/unused.h>
+#include <libalx/base/errno/perror.h>
+#include <libalx/base/linux/membarrier.h>
+#include <libalx/base/signal/sigpipe.h>
+#include <libalx/base/signal/sigterm.h>
+#include <libalx/base/socket/tcp/server.h>
+#include <libalx/base/stdio/printf/sbprintf.h>
+#include <libalx/base/stdlib/getenv/getenv_i.h>
+#include <libalx/base/stdlib/getenv/getenv_s.h>
+#include <libalx/base/sys/types.h>
 #include <libalx/extra/telnet-tcp/client/client.h>
 
 
@@ -33,6 +37,7 @@
  ******************************************************************************/
 #define ENV_ROBOT_TYPE		"ROBOT_TYPE"
 #define ENV_ROBOT_ADDR		"ROBOT_ADDR"
+#define ENV_ROBOT_PORT		"ROBOT_PORT"
 #define ENV_ROBOT_USER		"ROBOT_USER"
 #define ENV_ROBOT_PASSWD	"ROBOT_PASSWD"
 #define ENV_ROBOT_STATUS_FNAME	"ROBOT_STATUS_FNAME"
@@ -75,6 +80,7 @@ struct	Robot_Status {
  ******************************************************************************/
 /* environment variables */
 static	char			robot_addr[_POSIX_ARG_MAX];
+static	char			robot_port[_POSIX_ARG_MAX];
 static	char			robot_user[_POSIX_ARG_MAX];
 static	char			robot_passwd[_POSIX_ARG_MAX];
 static	char			robot_status_fname[FILENAME_MAX];
@@ -249,6 +255,9 @@ int	env_init		(void)
 	if (getenv_s(robot_addr, ARRAY_SIZE(robot_addr), ENV_ROBOT_ADDR))
 		goto err;
 	status--;
+	if (getenv_s(robot_port, ARRAY_SIZE(robot_port), ENV_ROBOT_PORT))
+		goto err;
+	status--;
 	if (getenv_s(robot_user, ARRAY_SIZE(robot_user), ENV_ROBOT_USER))
 		goto err;
 	status--;
@@ -290,7 +299,7 @@ int	robot_init		(void)
 	if (telnet_login(robot, robot_user, robot_passwd, delay_login))
 		goto err;
 #else
-	if (ur_init(&robot, robot_addr))
+	if (ur_init(&robot, robot_addr, robot_port, delay_login))
 		goto err0;
 #endif
 	status--;
@@ -499,7 +508,7 @@ int	robot_step_info		(char *str)
 #if 0
 	return	telnet_send(robot, str);
 #else
-	return	ur_puts(robot, str);
+	return	ur_puts(robot, str, delay_us, stdout);
 #endif
 }
 
@@ -507,4 +516,5 @@ int	robot_step_info		(char *str)
 /******************************************************************************
  ******* end of file **********************************************************
  ******************************************************************************/
+
 
