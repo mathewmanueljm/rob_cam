@@ -34,7 +34,7 @@ RUN	git clone							\
 	make	install-base install-cv		-C libalx
 RUN	git clone							\
 	    --single-branch						\
-	    --branch version-0.5.6-a						\
+	    --branch v0.5.6						\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/cam/	-j 2
 
