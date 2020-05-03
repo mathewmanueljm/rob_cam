@@ -26,10 +26,16 @@ RUN	apt-get update							&& \
 	apt-get autoclean						&& \
 	apt-get clean
 WORKDIR	/tmp
-RUN	git clone https://github.com/alejandro-colomar/libalx.git	&& \
+RUN	git clone							\
+	    --single branch						\
+	    --branch master						\
+	    https://github.com/alejandro-colomar/libalx.git		&& \
 	make	base cv				-C libalx	-j 8	&& \
 	make	install-base install-cv		-C libalx
-RUN	git clone https://github.com/alejandro-colomar/rob_cam.git	&& \
+RUN	git clone							\
+	    --single branch						\
+	    --branch master						\
+	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/cam/	-j 2
 
 FROM	debian@sha256:e6a6f2625ec46aa6ce5c537208565cde16138e7963c341ff2a3ecbf9a6736060

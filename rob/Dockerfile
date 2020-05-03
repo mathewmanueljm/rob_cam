@@ -22,13 +22,19 @@ RUN	apt-get update							&& \
 	apt-get autoclean						&& \
 	apt-get clean
 WORKDIR	/tmp
-RUN	git clone https://github.com/alejandro-colomar/libalx.git	&& \
+RUN	git clone							\
+	    --single branch						\
+	    --branch master						\
+	    https://github.com/alejandro-colomar/libalx.git		&& \
 	make	base telnet-tcp robot		-C libalx	-j 8	&& \
 	make	install-base			-C libalx		&& \
 	make	install-telnet-tcp		-C libalx		&& \
 	make	install-robot			-C libalx		&& \
 	rm -rf	libalx
-RUN	git clone https://github.com/alejandro-colomar/rob_cam.git	&& \
+RUN	git clone							\
+	    --single branch						\
+	    --branch master						\
+	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/rob/	-j 2
 
 FROM	debian@sha256:21a1267db36931b0a89f1fece2e54afa78438951fcaadd529837b7def15d04de
