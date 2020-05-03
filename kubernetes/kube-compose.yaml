@@ -56,6 +56,8 @@ spec:
                     value: "robot"
                 -   name: ROBOT_PASSWD
                     value: ""
+                -   name: ROBOT_PORT
+                    value: "30002"
                 -   name: ROBOT_STATUS_FNAME
                     value: "status.log"
 #                -   name: ROBOT_TYPE
