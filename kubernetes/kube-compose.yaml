@@ -45,27 +45,55 @@ spec:
                 image: alejandrocolomar/rob_cam:rob_0.5
                 env:
                 -   name: DELAY_LOGIN
-                    value: "1000000"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: DELAY_LOGIN
                 -   name: DELAY_US
-                    value: "100000"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: DELAY_US
                 -   name: ROB_CAMS_MAX
-                    value: "1"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROB_CAMS_MAX
                 -   name: ROB_PORT
-                    value: "13100"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROB_PORT
                 -   name: ROBOT_ADDR
-                    value: "robot"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_ADDR
                 -   name: ROBOT_PASSWD
-                    value: ""
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_PASSWD
                 -   name: ROBOT_PORT
-                    value: "30002"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_PORT
                 -   name: ROBOT_STATUS_FNAME
-                    value: "status.log"
-#                -   name: ROBOT_TYPE
-#                    value: "kwr"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_STATUS_FNAME
                 -   name: ROBOT_TYPE
-                    value: "ur"
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_TYPE
                 -   name: ROBOT_USER
-                    value: ""
+                    valueFrom:
+                        secretKeyRef:
+                            name: rob-secret
+                            key: ROBOT_USER
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -97,13 +125,25 @@ spec:
                     privileged: true
                 env:
                 -   name: CAMERA_IDX
-                    value: "0"
+                    valueFrom:
+                        secretKeyRef:
+                            name: cam-secret
+                            key: CAMERA_IDX
                 -   name: DELAY_US
-                    value: "10000"
+                    valueFrom:
+                        secretKeyRef:
+                            name: cam-secret
+                            key: DELAY_US
                 -   name: ROB_ADDR
-                    value: "rob"
+                    valueFrom:
+                        secretKeyRef:
+                            name: cam-secret
+                            key: ROB_ADDR
                 -   name: ROB_PORT
-                    value: "13100"
+                    valueFrom:
+                        secretKeyRef:
+                            name: cam-secret
+                            key: ROB_PORT
             volumes:
             -   name: dev-video0
                 hostPath:
