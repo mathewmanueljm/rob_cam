@@ -9,7 +9,7 @@ version: "2"
 services:
 
     cam:
-        image: alejandrocolomar/rob_cam:cam_0.5.6
+        image: alejandrocolomar/rob_cam:cam_0.5
         devices:
         -   "/dev/video0:/dev/video0"
         environment:
@@ -22,7 +22,7 @@ services:
         restart: always
 
     rob:
-        image: alejandrocolomar/rob_cam:rob_0.5.6
+        image: alejandrocolomar/rob_cam:rob_0.5
         environment:
         -   DELAY_LOGIN=1000000
         -   DELAY_US=100000
@@ -40,7 +40,7 @@ services:
         restart: always
 
     robot:
-        image: alejandrocolomar/rob_cam:ur-sim_0.5.6
+        image: alejandrocolomar/rob_cam:ur-sim_0.5
         restart: always
 
 ################################################################################

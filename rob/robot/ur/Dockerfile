@@ -33,7 +33,7 @@ RUN	git clone							\
 	rm -rf	libalx
 RUN	git clone							\
 	    --single-branch						\
-	    --branch version-0.5.6-a						\
+	    --branch version-0.5					\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	-C rob_cam/rob/robot/ur/	-j 2
 
