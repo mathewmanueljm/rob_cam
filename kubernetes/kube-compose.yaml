@@ -190,6 +190,6 @@ spec:
 #kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml    ;
 #echo "source <(kubectl completion bash)" >> ~/.bashrc                         ;
 #kubectl taint node ideapad node-role.kubernetes.io/master:NoSchedule-         ;
-#kubectl apply  --filename kube-compose.yaml                                   ;
-#kubectl delete --filename kube-compose.yaml                                   ;
+#kubectl apply  --filename . --recursive				       ;
+#kubectl delete --filename . --recursive				       ;
 ################################################################################
