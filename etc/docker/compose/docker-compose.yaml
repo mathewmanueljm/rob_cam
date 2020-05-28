@@ -9,7 +9,8 @@ version: "2"
 services:
 
     cam:
-        image: alejandrocolomar/rob_cam:cam_0.5
+        depends_on:
+        -   rob
         devices:
         -   "/dev/video0:/dev/video0"
         environment:
@@ -17,12 +18,12 @@ services:
         -   DELAY_US=10000
         -   ROB_ADDR=rob
         -   ROB_PORT=13100
-        depends_on:
-        -   rob
+        image: alejandrocolomar/rob_cam:cam_0.5
         restart: always
 
     rob:
-        image: alejandrocolomar/rob_cam:rob_0.5
+        depends_on:
+        -   robot
         environment:
         -   DELAY_LOGIN=1000000
         -   DELAY_US=100000
@@ -35,8 +36,7 @@ services:
 #        -   ROBOT_TYPE=kwr
         -   ROBOT_TYPE=ur
         -   ROBOT_USER=
-        depends_on:
-        -   robot
+        image: alejandrocolomar/rob_cam:rob_0.5
         restart: always
 
     robot:
