@@ -30,6 +30,8 @@ services:
             mode: 0440
             source: forward
             target: var/bind/master/alejandro-colomar.com
+        -
+            mode: 0440
             source: reverse
             target: var/bind/master/10.168
 
