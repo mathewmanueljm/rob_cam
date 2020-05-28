@@ -16,7 +16,8 @@ secrets:
 services:
     dns:
         configs:
-        -   mode: 0440
+        -
+            mode: 0440
             source: named
             target: /etc/bind/named.conf
         deploy:
@@ -25,7 +26,8 @@ services:
         ports:
         -   "53:53/udp"
         secrets:
-        -   mode: 0440
+        -
+            mode: 0440
             source: forward
             target: var/bind/master/alejandro-colomar.com
             source: reverse
