@@ -4,7 +4,8 @@
 #        SPDX-License-Identifier:  GPL-2.0-only                               #
 ###############################################################################
 
-FROM	debian@sha256:21a1267db36931b0a89f1fece2e54afa78438951fcaadd529837b7def15d04de \
+##	debian:latest
+FROM	debian@sha256:18f374fa88f9230a5c860f986dc83d3d03a056708164ff30c98d0e789e90946d \
 			AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
@@ -36,7 +37,8 @@ RUN	git clone							\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
 	make	bin/rob	-j 2
 
-FROM	debian@sha256:21a1267db36931b0a89f1fece2e54afa78438951fcaadd529837b7def15d04de
+##	debian:latest
+FROM	debian@sha256:18f374fa88f9230a5c860f986dc83d3d03a056708164ff30c98d0e789e90946d
 RUN	apt-get update							&& \
 	apt-get upgrade --yes						&& \
 	apt-get install -V \
