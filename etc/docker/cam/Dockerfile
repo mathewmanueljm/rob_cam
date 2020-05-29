@@ -37,7 +37,7 @@ RUN	git clone							\
 	    --single-branch						\
 	    --branch version-0.5					\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
-	make	bin/cam
+	make	bin/cam				-C rob_cam
 
 ##	debian:bullseye
 FROM	debian@sha256:a0304760ee6dbca1270ddb92a850b5328057618edd9658cac3e4c913ce38dae1
