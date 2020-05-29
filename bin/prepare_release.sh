@@ -21,25 +21,30 @@ update_version()
 	local	version=$1
 
 	sed "/--branch master/s/master/v${version}/"			\
-			-i ./cam/Dockerfile
+			-i ./etc/docker/cam/Dockerfile
 	sed "/--branch master/s/master/v${version}/"			\
-			-i ./rob/Dockerfile
+			-i ./etc/docker/rob/Dockerfile
 	sed "/--branch master/s/master/v${version}/"			\
-			-i ./rob/robot/ur/Dockerfile
+			-i ./etc/docker/robot/ur-sim/Dockerfile
 
-	sed "/alejandrocolomar\/rob_cam:cam/s/:cam/:cam_${version}/" \
-			-i ./docker/docker-compose.yaml
-	sed "/alejandrocolomar\/rob_cam:rob/s/:rob/:rob_${version}/" \
-			-i ./docker/docker-compose.yaml
+	sed "/alejandrocolomar\/rob_cam:cam/s/:cam/:cam_${version}/"	\
+			-i ./etc/docker/compose/docker-compose.yaml
+	sed "/alejandrocolomar\/rob_cam:rob/s/:rob/:rob_${version}/"	\
+			-i ./etc/docker/compose/docker-compose.yaml
 	sed "/alejandrocolomar\/rob_cam:ur-sim/s/:ur-sim/:ur-sim_${version}/" \
-			-i ./docker/docker-compose.yaml
+			-i ./etc/docker/compose/docker-compose.yaml
 
-	sed "/alejandrocolomar\/rob_cam:cam/s/:cam/:cam_${version}/" \
-			-i ./kubernetes/kube-compose.yaml
-	sed "/alejandrocolomar\/rob_cam:rob/s/:rob/:rob_${version}/" \
-			-i ./kubernetes/kube-compose.yaml
+	sed "/alejandrocolomar\/rob_cam:cam/s/:cam/:cam_${version}/"	\
+			-i ./etc/docker/kubernetes/kube-compose.yaml
+	sed "/alejandrocolomar\/rob_cam:rob/s/:rob/:rob_${version}/"	\
+			-i ./etc/docker/kubernetes/kube-compose.yaml
 	sed "/alejandrocolomar\/rob_cam:ur-sim/s/:ur-sim/:ur-sim_${version}/" \
-			-i ./kubernetes/kube-compose.yaml
+			-i ./etc/docker/kubernetes/kube-compose.yaml
+
+	sed "/alejandrocolomar\/rob_cam:dns/s/:dns/:dns_${version}/"	\
+			-i ./etc/docker/swarm/release/dns.yaml
+	sed "/alejandrocolomar\/rob_cam:dns/s/:dns/:dns_${version}/"	\
+			-i ./etc/docker/swarm/release/dns-blue.yaml
 }
 
 

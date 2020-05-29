@@ -4,21 +4,17 @@
 #        SPDX-License-Identifier:  GPL-2.0-only                               #
 ###############################################################################
 
-FROM	debian@sha256:e6a6f2625ec46aa6ce5c537208565cde16138e7963c341ff2a3ecbf9a6736060 \
+##	debian:latest
+FROM	debian@sha256:18f374fa88f9230a5c860f986dc83d3d03a056708164ff30c98d0e789e90946d \
 			AS build
 RUN	apt-get update							&& \
 	apt-get upgrade -V --yes					&& \
 	apt-get install -V \
 			gcc \
-			gcc-10 \
-			g++ \
-			g++-10 \
 			make \
 			git \
 			pkg-config \
 			libbsd-dev \
-			libgsl-dev \
-			libopencv-dev \
 			deborphan \
 			--yes						&& \
 	apt-get autoremove --purge --yes				&& \
@@ -28,40 +24,31 @@ RUN	apt-get update							&& \
 WORKDIR	/tmp
 RUN	git clone							\
 	    --single-branch						\
-	    --branch v1.0-b23						\
+	    --branch v1-b18.3						\
 	    https://github.com/alejandro-colomar/libalx.git		&& \
-	make	base cv				-C libalx	-j 8	&& \
-	make	install-base install-cv		-C libalx
+	make	base telnet-tcp robot		-C libalx	-j 8	&& \
+	make	install-base			-C libalx		&& \
+	make	install-telnet-tcp		-C libalx		&& \
+	make	install-robot			-C libalx		&& \
+	rm -rf	libalx
 RUN	git clone							\
 	    --single-branch						\
 	    --branch version-0.5					\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
-	make	-C rob_cam/cam/	-j 2
+	make	bin/rob				-C rob_cam
 
-FROM	debian@sha256:e6a6f2625ec46aa6ce5c537208565cde16138e7963c341ff2a3ecbf9a6736060
+##	debian:latest
+FROM	debian@sha256:18f374fa88f9230a5c860f986dc83d3d03a056708164ff30c98d0e789e90946d
 RUN	apt-get update							&& \
 	apt-get upgrade --yes						&& \
 	apt-get install -V \
-			make \
-			libc6 \
-			libstdc++6 \
-			libbsd0 \
-			libgsl23 \
-			libgslcblas0 \
-			libopencv-core4.2 \
-			libopencv-videoio4.2 \
-			libopencv-dev \
+			telnet \
 			--yes						&& \
 	apt-get autoremove --purge --yes				&& \
 	apt-get autoclean						&& \
 	apt-get clean
-WORKDIR	/tmp
-COPY	--from=build /tmp/libalx ./libalx
-RUN	make	install-base install-cv		-C libalx
-WORKDIR	/app
-COPY	--from=build /tmp/rob_cam/cam/cam ./
-RUN	chmod +x ./cam
-CMD	["./cam"]
+COPY	--from=build /tmp/rob_cam/bin/rob /usr/local/bin/rob
+CMD	["rob"]
 
-# docker container run --tty --interactive --rm --name cam --network rob_cam_network --device="/dev/video0:/dev/video0" --env ROB_ADDR=rob --env ROB_PORT=13100 --env CAMERA_IDX=0 --env DELAY_US=10000 alejandrocolomar/rob_cam:cam_0.5.6  
+# docker container run --tty --interactive --rm --name rob --network rob_cam_network --env ROBOT_TYPE=ur --env ROBOT_ADDR=robot --env ROBOT_PORT=30002 --env ROBOT_USER= --env ROBOT_PASSWD= --env ROBOT_STATUS_FNAME=status.log --env ROB_PORT=13100 --env ROB_CAMS_MAX=10 --env DELAY_LOGIN=1000000 --env DELAY_US=100000 alejandrocolomar/rob_cam:rob_0.5.6  
 
