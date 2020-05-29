@@ -29,7 +29,7 @@ COPY	--from=git	/repo/run/configs/etc/bind/named.conf		\
 COPY	--from=git	/repo/run/secrets/var/bind/master		\
 			/run/secrets/var/bind/master
 
-RUN	ln --symbolic 	/run/secrets/var/bind/master	/var/bind
+RUN	ln -sv		/run/secrets/var/bind/master	/var/bind
 
 CMD	["named", "-c", "/etc/bind/named.conf", "-g"]
 
