@@ -10,6 +10,8 @@ FROM	alpine@sha256:39eda93d15866957feaee28f8fc5adb545276a64147445c64992ef69804db
 
 RUN	apk add	--no-cache --upgrade bind
 
+RUN	ln -sv /run/secrets/var/bind/master /var/bind
+
 CMD	["named", "-c", "/etc/bind/named.conf", "-g"]
 
 ###############################################################################
