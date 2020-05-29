@@ -48,7 +48,7 @@ RUN	apt-get update							&& \
 			libc6 \
 			libstdc++6 \
 			libbsd0 \
-			libgsl23 \
+			libgsl25 \
 			libgslcblas0 \
 			libopencv-core4.2 \
 			libopencv-videoio4.2 \
