@@ -17,8 +17,9 @@ spec:
                 name: robot
         spec:
             containers:
-                -   name: robot
+                -
                     image: alejandrocolomar/rob_cam:ur-sim_0.5
+                    name: robot
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,67 +34,79 @@ spec:
             labels:
                 name: rob
         spec:
+            containers:
+            -
+                env:
+                -
+                    name: DELAY_LOGIN
+                    valueFrom:
+                        secretKeyRef:
+                            key: DELAY_LOGIN
+                            name: rob-secret
+                -
+                    name: DELAY_US
+                    valueFrom:
+                        secretKeyRef:
+                            key: DELAY_US
+                            name: rob-secret
+                -
+                    name: ROB_CAMS_MAX
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROB_CAMS_MAX
+                            name: rob-secret
+                -
+                    name: ROB_PORT
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROB_PORT
+                            name: rob-secret
+                -
+                    name: ROBOT_ADDR
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_ADDR
+                            name: rob-secret
+                -
+                    name: ROBOT_PASSWD
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_PASSWD
+                            name: rob-secret
+                -
+                    name: ROBOT_PORT
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_PORT
+                            name: rob-secret
+                -
+                    name: ROBOT_STATUS_FNAME
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_STATUS_FNAME
+                            name: rob-secret
+                -
+                    name: ROBOT_TYPE
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_TYPE
+                            name: rob-secret
+                -
+                    name: ROBOT_USER
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROBOT_USER
+                            name: rob-secret
+                image: alejandrocolomar/rob_cam:rob_0.5
+                name: rob
             initContainers:
-            -   name: init
-                image: busybox
+            -
                 command:
                 -   sh
                 -   -c
                 -   sleep 1
-            containers:
-            -   name: rob
-                image: alejandrocolomar/rob_cam:rob_0.5
-                env:
-                -   name: DELAY_LOGIN
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: DELAY_LOGIN
-                -   name: DELAY_US
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: DELAY_US
-                -   name: ROB_CAMS_MAX
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROB_CAMS_MAX
-                -   name: ROB_PORT
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROB_PORT
-                -   name: ROBOT_ADDR
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_ADDR
-                -   name: ROBOT_PASSWD
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_PASSWD
-                -   name: ROBOT_PORT
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_PORT
-                -   name: ROBOT_STATUS_FNAME
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_STATUS_FNAME
-                -   name: ROBOT_TYPE
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_TYPE
-                -   name: ROBOT_USER
-                    valueFrom:
-                        secretKeyRef:
-                            name: rob-secret
-                            key: ROBOT_USER
+                image: busybox
+                name: init
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -108,66 +121,74 @@ spec:
             labels:
                 name: cam
         spec:
+            containers:
+            -
+                env:
+                -
+                    name: CAMERA_IDX
+                    valueFrom:
+                        secretKeyRef:
+                            key: CAMERA_IDX
+                            name: cam-secret
+                -
+                    name: DELAY_US
+                    valueFrom:
+                        secretKeyRef:
+                            key: DELAY_US
+                            name: cam-secret
+                -
+                    name: ROB_ADDR
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROB_ADDR
+                            name: cam-secret
+                -
+                    name: ROB_PORT
+                    valueFrom:
+                        secretKeyRef:
+                            key: ROB_PORT
+                            name: cam-secret
+                image: alejandrocolomar/rob_cam:cam_0.5
+                name: cam
+                securityContext:
+                    privileged: true
+                volumeMounts:
+                -
+                    mountPath: /dev/video0
+                    name: dev-video0
             initContainers:
-            -   name: init
-                image: busybox
+            -
                 command:
                 -   sh
                 -   -c
                 -   sleep 2
-            containers:
-            -   name: cam
-                image: alejandrocolomar/rob_cam:cam_0.5
-                volumeMounts:
-                -   name: dev-video0
-                    mountPath: /dev/video0
-                securityContext:
-                    privileged: true
-                env:
-                -   name: CAMERA_IDX
-                    valueFrom:
-                        secretKeyRef:
-                            name: cam-secret
-                            key: CAMERA_IDX
-                -   name: DELAY_US
-                    valueFrom:
-                        secretKeyRef:
-                            name: cam-secret
-                            key: DELAY_US
-                -   name: ROB_ADDR
-                    valueFrom:
-                        secretKeyRef:
-                            name: cam-secret
-                            key: ROB_ADDR
-                -   name: ROB_PORT
-                    valueFrom:
-                        secretKeyRef:
-                            name: cam-secret
-                            key: ROB_PORT
+                image: busybox
+                name: init
             volumes:
-            -   name: dev-video0
+            -
                 hostPath:
                     path: /dev/video0
+                name: dev-video0
 ---
 apiVersion: v1
 kind: Service
 metadata:
     name: robot
 spec:
-    selector:
-        name: robot
     ports:
     -   port: 30002
+    selector:
+        name: robot
 ---
 apiVersion: v1
 kind: Service
 metadata:
     name: rob
 spec:
-    selector:
-        name: rob
     ports:
     -   port: 13100
+    selector:
+        name: rob
 
 ################################################################################
 #sudo apt-get update && sudo apt-get install -y apt-transport-https curl       ;

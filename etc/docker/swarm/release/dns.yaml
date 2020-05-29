@@ -1,0 +1,38 @@
+#########################################################################
+#      Copyright (C) 2020        Sebastian Francisco Colomar Bauza      #
+#      SPDX-License-Identifier:  GPL-2.0-only                           #
+#########################################################################
+
+configs:
+    named:
+        file: /run/configs/etc/bind/named.conf
+
+secrets:
+    forward:
+        file: /run/secrets/var/bind/master/alejandro-colomar.com
+    reverse:
+        file: /run/secrets/var/bind/master/10.168
+
+services:
+    dns:
+        configs:
+        -
+            mode: 0440
+            source: named
+            target: /etc/bind/named.conf
+        deploy:
+            mode: global
+        image: "alejandrocolomar/rob_cam:dns_0.5"
+        ports:
+        -   "53:53/udp"
+        secrets:
+        -
+            mode: 0440
+            source: forward
+            target: var/bind/master/alejandro-colomar.com
+        -
+            mode: 0440
+            source: reverse
+            target: var/bind/master/10.168
+
+version: '3.8'
