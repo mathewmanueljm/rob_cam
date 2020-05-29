@@ -11,10 +11,14 @@ RUN	apt-get update							&& \
 	apt-get install -V \
 			gcc \
 			gcc-10 \
+			g++ \
+			g++-10 \
 			make \
 			git \
 			pkg-config \
 			libbsd-dev \
+			libgsl-dev \
+			libopencv-dev \
 			deborphan \
 			--yes						&& \
 	apt-get autoremove --purge --yes				&& \
@@ -26,30 +30,36 @@ RUN	git clone							\
 	    --single-branch						\
 	    --branch v1.0-b23						\
 	    https://github.com/alejandro-colomar/libalx.git		&& \
-	make	base telnet-tcp robot	-C libalx	-j 8		&& \
-	make	install-base		-C libalx			&& \
-	make	install-telnet-tcp	-C libalx			&& \
-	make	install-robot		-C libalx			&& \
-	rm -rf	libalx
+	make	base cv				-C libalx	-j 8	&& \
+	make	install-base install-cv		-C libalx
 RUN	git clone							\
 	    --single-branch						\
 	    --branch version-0.5					\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
-	make	-C rob_cam/rob/robot/ur/	-j 2
+	make	bin/cam
 
 FROM	debian@sha256:e6a6f2625ec46aa6ce5c537208565cde16138e7963c341ff2a3ecbf9a6736060
-WORKDIR	/app
 RUN	apt-get update							&& \
 	apt-get upgrade --yes						&& \
 	apt-get install -V \
-			telnet \
+			make \
+			libc6 \
+			libstdc++6 \
+			libbsd0 \
+			libgsl23 \
+			libgslcblas0 \
+			libopencv-core4.2 \
+			libopencv-videoio4.2 \
+			libopencv-dev \
 			--yes						&& \
 	apt-get autoremove --purge --yes				&& \
 	apt-get autoclean						&& \
 	apt-get clean
-COPY	--from=build /tmp/rob_cam/rob/robot/ur/ur-sim ./
-RUN	chmod +x ./ur-sim
-CMD	["./ur-sim"]
+WORKDIR	/tmp
+COPY	--from=build	/tmp/libalx		./libalx
+RUN	make	install-base install-cv		-C libalx
+COPY	--from=build	/tmp/rob_cam/bin/cam	/usr/local/bin/cam
+CMD	["cam"]
 
-# docker container run --tty --network rob_cam_network --name robot --rm alejandrocolomar/rob_cam:ur-sim_0.5.6 
+# docker container run --tty --interactive --rm --name cam --network rob_cam_network --device="/dev/video0:/dev/video0" --env ROB_ADDR=rob --env ROB_PORT=13100 --env CAMERA_IDX=0 --env DELAY_US=10000 alejandrocolomar/rob_cam:cam_0.5.6  
 

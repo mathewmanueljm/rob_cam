@@ -1,4 +1,4 @@
-rob/rob
-rob/robot/ur/ur-sim
-cam/cam
+bin/rob
+bin/ur-sim
+bin/cam
 **/*-PASSED
