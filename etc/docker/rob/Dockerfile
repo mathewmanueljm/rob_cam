@@ -35,7 +35,7 @@ RUN	git clone							\
 	    --single-branch						\
 	    --branch version-0.5					\
 	    https://github.com/alejandro-colomar/rob_cam.git		&& \
-	make	bin/rob			-C rob_cam
+	make	bin/rob				-C rob_cam
 
 ##	debian:latest
 FROM	debian@sha256:18f374fa88f9230a5c860f986dc83d3d03a056708164ff30c98d0e789e90946d
